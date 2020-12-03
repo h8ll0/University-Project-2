@@ -85,7 +85,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords);
 
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
-void coordinates_change(FILE *f, Table *t, Coordinates *c, char *r_start, char *c_start, char *r_finish, char *c_finish);
+void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
 
 void irow(FILE *f, Table *t, Coordinates *coords);
 
@@ -164,19 +164,111 @@ int main(int argc, char **argv)
 }
 
 void
-coordinates_change(FILE *f, Table *t, Coordinates *c, char *r_start, char *c_start, char *r_finish, char *c_finish) {
-//
-//    int r_start_int = (int) atoi();
-//    int r_finish_int;
-//    int c_start_int;
-//    int c_finish_int;
-//
+coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish) {
+
+    // row start
+    if  (r_start) {
+
+        if (strcmp(r_start, "_") == 0) {
+            coords->row_start = 0;
+            coords->row_finish = t->size - 1;
+
+        } else if (is_digit(r_start)) {
+
+            coords->row_start = (int) atoi(r_start);
+            coords->row_finish = (int) atoi(r_start);
+            if (coords->row_start < 1)
+                problem(f, t, 5);
+
+        }
+
+    }
+    else
+        problem(f,t,5);
+    //
+
+
+    // col start
+    if  (c_start) {
+
+        if (strcmp(c_start, "_") == 0) {
+            coords->col_start = 0;
+            coords->col_finish = t->max_cells - 1;
+
+        } else if (is_digit(c_start)) {
+
+            coords->col_start = (int) atoi(c_start);
+            coords->col_finish = (int) atoi(c_start);
+            if (coords->col_start < 1)
+                problem(f, t, 5);
+
+        }
+
+    }
+    else
+        problem(f,t,5);
+    //
+
+
+    //row finish
+    if  ((r_finish) && (strcmp(r_finish,"_")) == 0)
+    {
+            coords->row_finish = t->size - 1;
+
+    }
+    else if ((r_finish) && (is_digit(r_finish)))
+    {
+
+        if  (coords->row_finish <= (int) atoi(r_finish))
+        {
+
+            coords->row_finish = (int) atoi(r_finish);
+
+            if (coords->row_finish < 1)
+                problem(f, t, 5);
+
+        }else{
+            problem(f,t,5);
+        }
+
+    }
+    //
+
+
+    //col finish
+    if  ((c_finish) && (strcmp(c_finish,"_")) == 0)
+    {
+
+        coords->col_finish = t->max_cells - 1;
+
+    }
+    else if ((c_finish) && (is_digit(c_finish)))
+    {
+
+        if  (coords->col_finish <= (int) atoi(c_finish))
+        {
+
+            coords->col_finish = (int) atoi(c_finish);
+
+            if  (coords->col_finish < 1)
+            {
+                problem(f,t,5);
+
+            }
+
+
+        }else{
+            problem(f,t,5);
+        }
 
 
 
+    }
+    //
 
-    printf("Row start: %i, finish: %i\n",c->row_start,c->row_finish);
-    printf("Col start: %i, finish: %i\n",c->col_start,c->col_finish);
+
+    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 
 }
@@ -243,7 +335,6 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
     for (int i = 0; i < commds->size; i++)
     {
         printf("%s\n", commds->item[i]);
-//        printf("\033[1;31m");
         if (strcmp(commds->item[i], "[set]") == 0)
         {
             printf("cmnd: set ""\n");
@@ -599,7 +690,6 @@ int row_fill(FILE *f, Table *t, Row *r, char *delim) {
 
     }
 
-    printf("I: %i\n",i);
     if  (i > t->max_cells)
     {
         t->max_cells = i;
