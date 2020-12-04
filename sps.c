@@ -87,8 +87,6 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
 void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
 
-void irow(FILE *f, Table *t, Coordinates *coords);
-
 void drow(Table *t, int idx);
 
 Row row_create(Table *t, FILE *f);
@@ -96,6 +94,12 @@ Row row_create(Table *t, FILE *f);
 void problem(FILE *f, Table *t, int i);
 
 bool is_digit(char *string);
+
+void irow(FILE *f, Table *t, Coordinates *coords);
+
+void arow(FILE *f, Table *t, Coordinates *coords);
+
+void row_insert(FILE *f, Table *t, int idx);
 
 int main(int argc, char **argv)
 {
@@ -143,7 +147,7 @@ int main(int argc, char **argv)
     Table t;
     table_ctor(&t);
     table_fill(f, &t, delim);       //      filling table with words
-    table_normalize(f, &t, t.max_cells, t.size);        //      normalizing table (all rows has one column number)
+    table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
     table_print(&t, delim[0]);
     printf("\n\n");
 
@@ -166,6 +170,12 @@ int main(int argc, char **argv)
 void
 coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish) {
 
+    int row_start_int;
+    int row_finish_int;
+    int col_start_int;
+    int col_finish_int;
+
+
     // row start
     if  (r_start) {
 
@@ -175,9 +185,11 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
         } else if (is_digit(r_start)) {
 
-            coords->row_start = (int) atoi(r_start);
-            coords->row_finish = (int) atoi(r_start);
-            if (coords->row_start < 1)
+            row_start_int = (int) atoi(r_start) - 1;
+
+            coords->row_start = row_start_int;
+            coords->row_finish = row_start_int;
+            if (row_start_int < 0)
                 problem(f, t, 5);
 
         }
@@ -197,9 +209,11 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
         } else if (is_digit(c_start)) {
 
-            coords->col_start = (int) atoi(c_start);
-            coords->col_finish = (int) atoi(c_start);
-            if (coords->col_start < 1)
+            col_start_int = (int) atoi(c_start) - 1;
+
+            coords->col_start = col_start_int;
+            coords->col_finish = col_start_int;
+            if (col_start_int < 0)
                 problem(f, t, 5);
 
         }
@@ -219,12 +233,14 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
     else if ((r_finish) && (is_digit(r_finish)))
     {
 
-        if  (coords->row_finish <= (int) atoi(r_finish))
+        row_finish_int = (int) atoi(r_finish) - 1;
+
+        if  (coords->row_finish <= row_finish_int)
         {
 
-            coords->row_finish = (int) atoi(r_finish);
+            coords->row_finish = row_finish_int;
 
-            if (coords->row_finish < 1)
+            if (row_finish_int < 0)
                 problem(f, t, 5);
 
         }else{
@@ -245,12 +261,14 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
     else if ((c_finish) && (is_digit(c_finish)))
     {
 
-        if  (coords->col_finish <= (int) atoi(c_finish))
+        col_finish_int = (int) atoi(c_finish) - 1;
+
+        if  (coords->col_finish <= col_finish_int)
         {
 
-            coords->col_finish = (int) atoi(c_finish);
+            coords->col_finish = col_finish_int;
 
-            if  (coords->col_finish < 1)
+            if  (col_finish_int < 0)
             {
                 problem(f,t,5);
 
@@ -265,6 +283,15 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
     }
     //
+
+    if  (t->size - 1 < coords->row_finish || t->max_cells - 1 < coords->col_finish)
+    {
+
+        table_normalize(f,t,coords->col_finish,coords->row_finish);
+
+    }
+
+
 
 
     printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
@@ -300,10 +327,10 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
     for (int i = 0; i < t->size; i++) {
 
-        if  (t->rows[i].size < t->max_cells)
+        if  (t->rows[i].size < max_cells)
         {
 
-            for (int j = t->rows[i].size; j < t->max_cells; ++j) {
+            for (int j = t->rows[i].size; j < max_cells; ++j) {
 
                 Cell a;
                 array_ctor(&a);
@@ -358,11 +385,13 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (strcmp(commds->item[i], "irow") == 0)
         {
             printf("cmnd: irow\n");
+            irow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "arow") == 0)
         {
             printf("cmnd: arow\n");
+            arow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "drow") == 0)
@@ -476,6 +505,35 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
     }
 
+
+}
+
+void arow(FILE *f, Table *t, Coordinates *coords) {
+
+    int idx = coords->row_start+1;
+    row_insert(f, t, idx);
+}
+
+void row_insert(FILE *f, Table *t, int idx) {
+
+    if (t->size == t->capacity)
+        table_resize(f,t,1);
+
+    if (t->size < t->capacity)
+    {
+        for (int i = t->size - 1; i >= idx; i--)
+            t->rows[i+1] = t->rows[i];
+
+        t->rows[idx] = row_create(t,f);
+        t->size++;
+    }
+
+}
+
+void irow(FILE *f, Table *t, Coordinates *coords) {
+
+    int idx = coords->row_start;
+    row_insert(f, t, idx);
 
 }
 
