@@ -515,7 +515,7 @@ void drow(FILE *f, Table *t, Coordinates *coords) {
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
 
         row_dtor(&t->rows[i]);
-
+        printf("Row %i was deleted\n",i);
     }
 
     table_sort(f,t);
@@ -524,23 +524,21 @@ void drow(FILE *f, Table *t, Coordinates *coords) {
 
 void table_sort(FILE *f, Table *t) {
 
-    printf("Table size: %i\n",t->size);
-    for (int i = 0; i < t->size; i++) {
+    for (int i = 0; i < t->size; ++i) {
 
-        if (!t->rows[i].cells)
-
+        if  (t->rows[i].cells == NULL)
         {
-            for (int j = i; j < (*t).size; ++j) {
+            for (int j = i; j < t->size-1; ++j) {
 
-                printf("Row %i is NULL\n", i);
-                (*t).rows[i] = (*t).rows[i + 1];
-
+                t->rows[j] = t->rows[j+1];
 
             }
+            t->size--;
 
         }
 
     }
+
 
 
 }
@@ -681,25 +679,28 @@ void table_dtor(Table *t) {
 
 void table_print(Table *t, char delim) {
 
-//    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
+    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
     for (int i = 0; i < t->size; i++) {
 
-//        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
+        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
+
+
         for (int j = 0; j < t->rows[i].size; j++) {
 
             for (int k = 0; k < t->rows[i].cells[j].size; ++k) {
 
-                printf("%c",t->rows[i].cells[j].word[k]);
+                printf("%c", t->rows[i].cells[j].word[k]);
 
             }
 
-            if (t->rows[i].size-1 != j)
-                printf("%c",delim);
+            if (t->rows[i].size - 1 != j)
+                printf("%c", delim);
 
         }
 
         if (t->size-1 != i)
             printf("\n");
+
 
     }
 
