@@ -629,18 +629,6 @@ void parse_commands(char *argv, Commands *commands) {
 
 }
 
-void drow(Table *t, int idx) {
-
-    int i = idx-1;
-    for (; i < t->size-1 ; i++) {
-
-        t->rows[i] = t->rows[i + 1];
-
-    }
-    t->rows->size--;
-
-}
-
 void table_dtor(Table *t) {
 
     while (t->size != 0)
