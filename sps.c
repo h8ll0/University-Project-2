@@ -327,10 +327,10 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
     for (int i = 0; i < t->size; i++) {
 
-        if  (t->rows[i].size < max_cells)
+        if  (t->rows[i].size <= max_cells)
         {
 
-            for (int j = t->rows[i].size; j < max_cells; ++j) {
+            for (int j = t->rows[i].size; j <= max_cells; ++j) {
 
                 Cell a;
                 array_ctor(&a);
@@ -343,7 +343,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
     }
 
-    for (int i = t->size; i < max_rows; i++) {
+    for (int i = t->size; i <= max_rows; i++) {
 
         Row tmp_row = row_create(t,f);
         table_append(f, t, &tmp_row);
@@ -384,13 +384,13 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (strcmp(commds->item[i], "irow") == 0)
         {
-            printf("cmnd: irow\n");
+//            printf("cmnd: irow\n");
             irow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "arow") == 0)
         {
-            printf("cmnd: arow\n");
+//            printf("cmnd: arow\n");
             arow(f,t,coords);
             continue;
         }
@@ -422,13 +422,13 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (sscanf(commds->item[i], "[%[^,],%[^,],%[^,],%[^]]]", command1, command2, command3, command4) == 4)
         {
-            printf("cmnd choose1: \'%s\' \'%s\' \'%s\' \'%s\'\n",command1,command2,command3,command4);
+//            printf("cmnd choose1: \'%s\' \'%s\' \'%s\' \'%s\'\n",command1,command2,command3,command4);
             coordinates_change(f, t, coords, command1, command2, command3, command4);
             continue;
         }
         else if (sscanf(commds->item[i], "[%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd choose2: \'%s\' \'%s\'\n",command1,command2);
+//            printf("cmnd choose2: \'%s\' \'%s\'\n",command1,command2);
             coordinates_change(f, t, coords, command1, command2, NULL, NULL);
             continue;
         }
@@ -510,8 +510,9 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
 void arow(FILE *f, Table *t, Coordinates *coords) {
 
-    int idx = coords->row_start+1;
+    int idx = coords->row_finish + 1;
     row_insert(f, t, idx);
+
 }
 
 void row_insert(FILE *f, Table *t, int idx) {
@@ -655,10 +656,10 @@ void table_dtor(Table *t) {
 
 void table_print(Table *t, char delim) {
 
-    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
+//    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
     for (int i = 0; i < t->size; i++) {
 
-        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
+//        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
         for (int j = 0; j < t->rows[i].size; j++) {
 
             for (int k = 0; k < t->rows[i].cells[j].size; ++k) {
