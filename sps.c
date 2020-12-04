@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-//123
 
 #define MAX_COMMANDS 1000
 #define MAX_IN_COMMAND 1000
@@ -101,6 +100,8 @@ void arow(FILE *f, Table *t, Coordinates *coords);
 void row_insert(FILE *f, Table *t, int idx);
 
 void drow(FILE *f, Table *t, Coordinates *coords);
+
+void table_sort(FILE *f, Table *t);
 
 int main(int argc, char **argv)
 {
@@ -510,6 +511,37 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 }
 
 void drow(FILE *f, Table *t, Coordinates *coords) {
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        row_dtor(&t->rows[i]);
+
+    }
+
+    table_sort(f,t);
+
+}
+
+void table_sort(FILE *f, Table *t) {
+
+    printf("Table size: %i\n",t->size);
+    for (int i = 0; i < t->size; i++) {
+
+        if (!t->rows[i].cells)
+
+        {
+            for (int j = i; j < (*t).size; ++j) {
+
+                printf("Row %i is NULL\n", i);
+                (*t).rows[i] = (*t).rows[i + 1];
+
+
+            }
+
+        }
+
+    }
+
 
 }
 
