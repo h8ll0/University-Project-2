@@ -87,7 +87,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
 void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
 
-Row row_create(Table *t, FILE *f);
+Row row_create(FILE *f, Table *t);
 
 void problem(FILE *f, Table *t, int i);
 
@@ -102,6 +102,18 @@ void row_insert(FILE *f, Table *t, int idx);
 void drow(FILE *f, Table *t, Coordinates *coords);
 
 void table_sort(FILE *f, Table *t);
+
+void icol(FILE *f, Table *t, Coordinates *coords);
+
+void array_insert(FILE *f, Table *t, int idx);
+
+Cell array_create(FILE *f, Table *t);
+
+void acol(FILE *f, Table *t, Coordinates *coords);
+
+void dcol(FILE *f, Table *t, Coordinates *coords);
+
+void row_sort(FILE *f, Table *t, Row *r, int i);
 
 int main(int argc, char **argv)
 {
@@ -339,6 +351,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
                 row_append(f, t, &t->rows[i], &a, -1);
 
             }
+            t->max_cells = max_cells+1;
 
 
         }
@@ -347,7 +360,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
     for (int i = t->size; i <= max_rows; i++) {
 
-        Row tmp_row = row_create(t,f);
+        Row tmp_row = row_create(f, t);
         table_append(f, t, &tmp_row);
 
     }
@@ -405,16 +418,19 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (strcmp(commds->item[i], "icol") == 0)
         {
             printf("cmnd: icol\n");
+            icol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "acol") == 0)
         {
             printf("cmnd: acol\n");
+            acol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "dcol") == 0)
         {
             printf("cmnd: dcol\n");
+            dcol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "clear") == 0)
@@ -510,12 +526,85 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
 }
 
+void dcol(FILE *f, Table *t, Coordinates *coords) {
+
+    for (int i = 0; i < t->size; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            array_dtor(&t->rows[i].cells[j]);
+            row_sort(f, t, &t->rows[i], j);
+
+        }
+
+
+    }
+
+
+
+}
+
+void row_sort(FILE *f, Table *t, Row *r, int i) {
+
+    for (int j = i; j < r->size; ++j) {
+
+        r->cells[j] = r->cells[j+1];
+
+    }
+    r->size--;
+
+}
+
+void acol(FILE *f, Table *t, Coordinates *coords) {
+
+
+    int idx = coords->col_finish + 1;
+    array_insert(f,t,idx);
+
+}
+
+void icol(FILE *f, Table *t, Coordinates *coords) {
+
+    int idx = coords->col_start;
+    array_insert(f,t,idx);
+
+}
+
+void array_insert(FILE *f, Table *t, int idx) {
+
+    for (int i = 0; i < t->size; ++i) {
+
+        if  (t->rows[i].size == t->rows[i].capacity)
+        {
+            row_resize(f,t,&t->rows[i],1);
+        }
+
+        for (int j = t->rows[i].size - 1; j >= idx; j--) {
+
+            t->rows[i].cells[j + 1] = t->rows[i].cells[j];
+
+        }
+        t->rows[i].cells[idx] = array_create(f,t);
+        t->rows[i].size++;
+
+    }
+
+}
+
+Cell array_create(FILE *f, Table *t) {
+
+    Cell result;
+    array_ctor(&result);
+
+    return result;
+}
+
 void drow(FILE *f, Table *t, Coordinates *coords) {
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
 
         row_dtor(&t->rows[i]);
-        printf("Row %i was deleted\n",i);
+
     }
 
     table_sort(f,t);
@@ -560,7 +649,7 @@ void row_insert(FILE *f, Table *t, int idx) {
         for (int i = t->size - 1; i >= idx; i--)
             t->rows[i+1] = t->rows[i];
 
-        t->rows[idx] = row_create(t,f);
+        t->rows[idx] = row_create(f, t);
         t->size++;
     }
 
@@ -573,7 +662,7 @@ void irow(FILE *f, Table *t, Coordinates *coords) {
 
 }
 
-Row row_create(Table *t, FILE *f) {
+Row row_create(FILE *f, Table *t) {
 
     (void) f;
     Row new_row;
