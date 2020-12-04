@@ -533,6 +533,7 @@ void dcol(FILE *f, Table *t, Coordinates *coords) {
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
             array_dtor(&t->rows[i].cells[j]);
+            t->rows[i].size--;
             row_sort(f, t, &t->rows[i], j);
 
         }
@@ -551,7 +552,6 @@ void row_sort(FILE *f, Table *t, Row *r, int i) {
         r->cells[j] = r->cells[j+1];
 
     }
-    r->size--;
 
 }
 
