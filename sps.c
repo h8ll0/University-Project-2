@@ -528,6 +528,12 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
 void dcol(FILE *f, Table *t, Coordinates *coords) {
 
+    if (coords->col_start == 0 && coords->col_finish == t->max_cells-1)
+    {
+        table_dtor(t);
+        return;
+    }
+
     for (int i = 0; i < t->size; ++i) {
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
@@ -540,8 +546,6 @@ void dcol(FILE *f, Table *t, Coordinates *coords) {
 
 
     }
-
-
 
 }
 
