@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+//123
 
 #define MAX_COMMANDS 1000
 #define MAX_IN_COMMAND 1000
@@ -87,8 +88,6 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
 void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
 
-void drow(Table *t, int idx);
-
 Row row_create(Table *t, FILE *f);
 
 void problem(FILE *f, Table *t, int i);
@@ -100,6 +99,8 @@ void irow(FILE *f, Table *t, Coordinates *coords);
 void arow(FILE *f, Table *t, Coordinates *coords);
 
 void row_insert(FILE *f, Table *t, int idx);
+
+void drow(FILE *f, Table *t, Coordinates *coords);
 
 int main(int argc, char **argv)
 {
@@ -397,7 +398,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (strcmp(commds->item[i], "drow") == 0)
         {
             printf("cmnd: drow\n");
-            drow(t,1);
+            drow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "icol") == 0)
@@ -505,6 +506,10 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
     }
 
+
+}
+
+void drow(FILE *f, Table *t, Coordinates *coords) {
 
 }
 
