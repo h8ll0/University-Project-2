@@ -115,6 +115,16 @@ void dcol(FILE *f, Table *t, Coordinates *coords);
 
 void row_sort(FILE *f, Table *t, Row *r, int i);
 
+void find_max(FILE *f, Table *t, Coordinates *coords);
+
+void find_min(FILE *f, Table *t, Coordinates *coords);
+
+void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR);
+
+void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR);
+
+void clear(FILE *f, Table *t, Coordinates *coords);
+
 int main(int argc, char **argv)
 {
 
@@ -320,18 +330,15 @@ bool is_digit(char *string) {
 
     for (int i = 0; i < (int) strlen(string); ++i) {
 
-        if  (string[i] > 47 && string[i] < 59)
-        {
+        if (string[i] > 47 && string[i] < 59) {
             result = 1;
-        }
-        else
-        {
+        } else {
             result = 0;
         }
 
     }
-
     return result;
+
 }
 
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
@@ -385,11 +392,13 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (strcmp(commds->item[i], "[max]") == 0)
         {
             printf("cmnd: max\n");
+            find_max(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "[min]") == 0)
         {
             printf("cmnd: min\n");
+            find_min(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "[_]") == 0)
@@ -436,6 +445,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (strcmp(commds->item[i], "clear") == 0)
         {
             printf("cmnd: clear\n");
+            clear(f,t,coords);
             continue;
         }
         else if (sscanf(commds->item[i], "[%[^,],%[^,],%[^,],%[^]]]", command1, command2, command3, command4) == 4)
@@ -453,6 +463,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (sscanf(commds->item[i], "[find %[^]]]", command1) == 1)
         {
             printf("cmnd find: \'%s\'\n",command1);
+            find_STR(f, t, coords, command1);
             continue;
         }
         else if (sscanf(commds->item[i], "swap [%[^,],%[^]]]", command1, command2) == 2)
@@ -483,6 +494,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (sscanf(commds->item[i], "set %s", command1) == 1)
         {
             printf("cmnd set: \'%s\'\n",command1);
+            set_STR(f,t,coords,command1);
             continue;
         }
         else if (sscanf(commds->item[i], "def _%s", command1) == 1)
@@ -522,6 +534,162 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
 
     }
+
+
+}
+
+void clear(FILE *f, Table *t, Coordinates *coords) {
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            array_dtor(&t->rows[i].cells[j]);
+
+        }
+
+    }
+
+}
+
+void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
+
+    int size = (int) strlen(STR);
+
+    char *tmp_array;
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            t->rows[i].cells[j].size = size;
+            tmp_array = realloc(t->rows[i].cells[j].word, sizeof(char) * size);
+
+            if  (NULL == tmp_array)
+                problem(f,t,1);
+
+            t->rows[i].cells[j].word = tmp_array;
+
+            for (int k = 0; k < size; ++k)
+            {
+                t->rows[i].cells[j].word[k] = STR[k];
+            }
+
+        }
+
+    }
+
+}
+
+void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
+
+    char *tmp = NULL;
+
+    int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
+    int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
+
+    for (int i = row_start_int; i <= row_finish_int; ++i) {
+
+        for (int j = col_start_int; j <= col_finish_int; ++j) {
+
+            t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
+
+            tmp = t->rows[i].cells[j].word;
+
+            if (strcmp(tmp,STR) == 0)
+            {
+
+                coords->row_start = coords->row_finish = i;
+                coords->col_start = coords->col_finish = j;
+
+            }
+
+
+        }
+
+    }
+    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+
+}
+
+void find_min(FILE *f, Table *t, Coordinates *coords) {
+
+    float min = 0;
+    char *tmp = NULL;
+    bool set = false;
+    int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
+    int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
+
+    for (int i = row_start_int; i <= row_finish_int; ++i) {
+
+        for (int j = col_start_int; j <= col_finish_int; ++j) {
+
+            t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
+
+            tmp = t->rows[i].cells[j].word;
+
+            if  (is_digit(tmp))
+            {
+                printf("%s\n",tmp);
+                if  ((float) atof(tmp) < min || !set)
+                {
+                    min = (float) atof(tmp);
+                    set = true;
+                    coords->row_start = coords->row_finish = i;
+                    coords->col_start = coords->col_finish = j;
+
+
+                }
+
+            }
+
+        }
+
+    }
+    printf("Min: %f\n",min);
+    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+
+}
+
+void find_max(FILE *f, Table *t, Coordinates *coords) {
+
+    float max = 0;
+    char *tmp = NULL;
+    bool set = false;
+    int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
+    int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
+
+    for (int i = row_start_int; i <= row_finish_int; ++i) {
+
+        for (int j = col_start_int; j <= col_finish_int; ++j) {
+
+                t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
+
+                tmp = t->rows[i].cells[j].word;
+
+                if  (is_digit(tmp))
+                {
+                    printf("%s\n",tmp);
+                    if  ((float) atof(tmp) > max || !set)
+                    {
+                        max = (float) atof(tmp);
+                        set = true;
+                        coords->row_start = coords->row_finish = i;
+                        coords->col_start = coords->col_finish = j;
+
+
+                    }
+
+                }
+
+        }
+
+    }
+    printf("Max: %.f\n",max);
+    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 
 }
