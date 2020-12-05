@@ -583,7 +583,6 @@ void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command
 
     char tmp_word[1000];
     int cell_counter = 0;
-    bool set = false;
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
 
@@ -691,11 +690,16 @@ void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
 Cell *get_cell(FILE *f, Table *t, int y, int x) {
 
+    (void) f;
+
     return &t->rows[y].cells[x];
 
 }
 
 void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
+
+    (void) f;
+    (void) t;
 
     int size = (int) strlen(word);
     char *tmp = realloc(a->word,size * sizeof(char));
@@ -713,6 +717,9 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
 }
 
 char *cell_to_string(FILE *f, Table *t, Cell *cell) {
+
+    (void) f;
+    (void) t;
 
     char *result = cell->word;
     result[cell->size] = '\0';
@@ -745,6 +752,8 @@ void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2
 
 void swap_cells(FILE *f, Table *t, Cell *a, Cell *b) {
 
+    (void) f;
+    (void) t;
     Cell tmp = *a;
     *a = *b;
     *b = tmp;
@@ -752,6 +761,8 @@ void swap_cells(FILE *f, Table *t, Cell *a, Cell *b) {
 }
 
 void clear(FILE *f, Table *t, Coordinates *coords) {
+
+    (void) f;
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
 
@@ -826,6 +837,8 @@ void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
 void find_min(FILE *f, Table *t, Coordinates *coords) {
 
+    (void) f;
+
     float min = 0;
     char *tmp = NULL;
     bool set = false;
@@ -865,6 +878,8 @@ void find_min(FILE *f, Table *t, Coordinates *coords) {
 }
 
 void find_max(FILE *f, Table *t, Coordinates *coords) {
+
+    (void) f;
 
     float max = 0;
     char *tmp = NULL;
@@ -930,6 +945,9 @@ void dcol(FILE *f, Table *t, Coordinates *coords) {
 
 void row_sort(FILE *f, Table *t, Row *r, int i) {
 
+    (void) f;
+    (void) t;
+
     for (int j = i; j < r->size; ++j) {
 
         r->cells[j] = r->cells[j+1];
@@ -976,6 +994,8 @@ void array_insert(FILE *f, Table *t, int idx) {
 
 Cell array_create(FILE *f, Table *t) {
 
+    (void) f;
+    (void) t;
     Cell result;
     array_ctor(&result);
 
@@ -996,6 +1016,7 @@ void drow(FILE *f, Table *t, Coordinates *coords) {
 
 void table_sort(FILE *f, Table *t) {
 
+    (void) f;
     for (int i = 0; i < t->size; ++i) {
 
         if  (t->rows[i].cells == NULL)
