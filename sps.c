@@ -720,10 +720,21 @@ char *cell_to_string(FILE *f, Table *t, Cell *cell) {
 
     (void) f;
     (void) t;
+    char result[cell->size];
 
-    char *result = cell->word;
-    result[cell->size] = '\0';
-    return result;
+    int i = 0;
+    while (i < cell->size) {
+
+        result[i] = cell->word[i];
+        i++;
+
+    }
+
+    result[i] = '\0';
+
+    char *p = result;
+
+    return p;
 }
 
 void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
