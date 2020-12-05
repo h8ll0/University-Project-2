@@ -125,6 +125,18 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR);
 
 void clear(FILE *f, Table *t, Coordinates *coords);
 
+void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+
+void swap_cells(FILE *f, Table *t, Cell *a, Cell *b);
+
+void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+
+char *cell_to_string(FILE *f, Table *t, Cell *cell);
+
+void cell_set_word(FILE *f, Table *t, Cell *a, char *word);
+
+Cell * get_cell(FILE *f, Table *t, int y, int x);
+
 int main(int argc, char **argv)
 {
 
@@ -391,13 +403,11 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (strcmp(commds->item[i], "[max]") == 0)
         {
-            printf("cmnd: max\n");
             find_max(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "[min]") == 0)
         {
-            printf("cmnd: min\n");
             find_min(f,t,coords);
             continue;
         }
@@ -408,43 +418,36 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (strcmp(commds->item[i], "irow") == 0)
         {
-//            printf("cmnd: irow\n");
             irow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "arow") == 0)
         {
-//            printf("cmnd: arow\n");
             arow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "drow") == 0)
         {
-            printf("cmnd: drow\n");
             drow(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "icol") == 0)
         {
-            printf("cmnd: icol\n");
             icol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "acol") == 0)
         {
-            printf("cmnd: acol\n");
             acol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "dcol") == 0)
         {
-            printf("cmnd: dcol\n");
             dcol(f,t,coords);
             continue;
         }
         else if (strcmp(commds->item[i], "clear") == 0)
         {
-            printf("cmnd: clear\n");
             clear(f,t,coords);
             continue;
         }
@@ -462,18 +465,19 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (sscanf(commds->item[i], "[find %[^]]]", command1) == 1)
         {
-            printf("cmnd find: \'%s\'\n",command1);
             find_STR(f, t, coords, command1);
             continue;
         }
         else if (sscanf(commds->item[i], "swap [%[^,],%[^]]]", command1, command2) == 2)
         {
             printf("cmnd swap: \'%s\' \'%s\'\n",command1,command2);
+            swap(f,t,coords,command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "sum [%[^,],%[^]]]", command1, command2) == 2)
         {
             printf("cmnd sum: \'%s\' \'%s\'\n",command1,command2);
+            sum(f, t, coords, command1, command2);
             continue;
         }
         else if (sscanf(commds->item[i], "avg [%[^,],%[^]]]", command1, command2) == 2)
@@ -538,6 +542,98 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
 }
 
+void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+
+    int y = (int) atoi(command1) - 1;
+    int x = (int) atoi(command2) - 1;
+
+    float sum = 0;
+    char* tmp_word;
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            tmp_word = cell_to_string(f,t,&t->rows[i].cells[j]);
+
+            if (is_digit(tmp_word))
+            {
+
+                sum += (float) atof(tmp_word);
+                Cell *a = get_cell(f,t,y,x);
+                sprintf(tmp_word,"%g",sum);
+                cell_set_word(f, t, a, tmp_word);
+
+            }
+
+        }
+
+    }
+
+    printf("Sum: %g\n",sum);
+
+}
+
+Cell *get_cell(FILE *f, Table *t, int y, int x) {
+
+    return &t->rows[y].cells[x];
+
+}
+
+void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
+
+    int size = (int) strlen(word);
+    char *tmp = realloc(a->word,size * sizeof(char));
+
+    for (int i = 0; i < size; ++i) {
+
+        tmp[i] = word[i];
+
+    }
+
+    a->capacity = size;
+    a->size = size;
+    a->word = tmp;
+
+}
+
+char *cell_to_string(FILE *f, Table *t, Cell *cell) {
+
+    char *result = cell->word;
+    result[cell->size] = '\0';
+    return result;
+}
+
+void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+
+    int y = (int) atoi(command1) - 1;
+    int x = (int) atoi(command2) - 1;
+
+    Cell *a = &t->rows[y].cells[x];
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            Cell *b = &t->rows[i].cells[j];
+            swap_cells(f,t,b,a);
+            a = &t->rows[y].cells[x];
+
+        }
+
+    }
+
+
+}
+
+void swap_cells(FILE *f, Table *t, Cell *a, Cell *b) {
+
+    Cell tmp = *a;
+    *a = *b;
+    *b = tmp;
+
+}
+
 void clear(FILE *f, Table *t, Coordinates *coords) {
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
@@ -592,9 +688,7 @@ void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
         for (int j = col_start_int; j <= col_finish_int; ++j) {
 
-            t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
-
-            tmp = t->rows[i].cells[j].word;
+            tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
             if (strcmp(tmp,STR) == 0)
             {
