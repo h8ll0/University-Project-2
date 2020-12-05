@@ -137,6 +137,12 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word);
 
 Cell * get_cell(FILE *f, Table *t, int y, int x);
 
+void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+
+void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+
+void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+
 int main(int argc, char **argv)
 {
 
@@ -482,22 +488,23 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (sscanf(commds->item[i], "avg [%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd avg: \'%s\' \'%s\'\n",command1,command2);
+            avg(f,t,coords,command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "count [%[^,],%[^]]]", command1, command2) == 2)
         {
             printf("cmnd count: \'%s\' \'%s\'\n",command1,command2);
+            count(f,t,coords,command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "len [%[^,],%[^]]]", command1, command2) == 2)
         {
             printf("cmnd len: \'%s\' \'%s\'\n",command1,command2);
+            len(f,t,coords,command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "set %s", command1) == 1)
         {
-            printf("cmnd set: \'%s\'\n",command1);
             set_STR(f,t,coords,command1);
             continue;
         }
@@ -542,10 +549,118 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
 }
 
+void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+
+    int y = (int) atoi(command1) - 1;
+    int x = (int) atoi(command2) - 1;
+    int len = 0;
+    char tmp[1000];
+
+    table_normalize(f,t,x,y);
+
+    Cell *a = get_cell(f,t,coords->col_start,coords->col_finish);
+
+    for (int i = 0; i < a->size; ++i) {
+
+        if (a->word[i] != '\\')
+            len++;
+
+    }
+
+    sprintf(tmp,"%i",len);
+    Cell *b = get_cell(f,t,y,x);
+    cell_set_word(f,t,b,tmp);
+
+
+}
+
+void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+
+    int y = (int) atoi(command1) - 1;
+    int x = (int) atoi(command2) - 1;
+
+    table_normalize(f,t,x,y);
+
+    char tmp_word[1000];
+    int cell_counter = 0;
+    bool set = false;
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            Cell *b = get_cell(f,t,i,j);
+
+            if (b->size > 0)
+            {
+
+                cell_counter++;
+
+
+            }
+
+        }
+
+    }
+
+    Cell *a = get_cell(f,t,y,x);
+    sprintf(tmp_word,"%i",cell_counter);
+    cell_set_word(f, t, a, tmp_word);
+
+}
+
+void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+
+    int y = (int) atoi(command1) - 1;
+    int x = (int) atoi(command2) - 1;
+
+    table_normalize(f,t,x,y);
+
+    float sum = 0;
+    char* tmp_word;
+    float cell_counter = 0;
+    bool set = false;
+
+    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+
+        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+
+            tmp_word = cell_to_string(f,t,&t->rows[i].cells[j]);
+
+            if (is_digit(tmp_word))
+            {
+
+                sum += (float) atof(tmp_word);
+                set = true;
+                cell_counter++;
+
+
+            }
+
+        }
+
+    }
+
+    if  (set)
+    {
+
+        Cell *a = get_cell(f,t,y,x);
+        sprintf(tmp_word,"%g",sum/cell_counter);
+        cell_set_word(f, t, a, tmp_word);
+
+    }
+
+    printf("Sum: %g\n",sum);
+
+}
+
 void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
+
+    table_normalize(f,t,x,y);
+
 
     float sum = 0;
     char* tmp_word;
@@ -608,6 +723,8 @@ void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
+
+    table_normalize(f,t,x,y);
 
     Cell *a = &t->rows[y].cells[x];
 
