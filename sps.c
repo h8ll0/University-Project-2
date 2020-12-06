@@ -258,11 +258,11 @@ void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
 //    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
     vars->size = 0;
 
-//    for (int i = 0; i < MAX_TMP_VARS; ++i) {
-//
-//        vars->cell[i] = array_create(f,t);
-//
-//    }
+    for (int i = 0; i < MAX_TMP_VARS; ++i) {
+
+        vars->cell[i] = array_create(f,t);
+
+    }
 
     printf("Tmp vars initialized!\n");
 
@@ -735,10 +735,9 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
 //    tmp_vars->cell[number] = (*t).rows[coords->row_start].cells[coords->col_start];
 //    memcpy(&tmp_vars->cell[number],&t->rows[coords->row_start].cells[coords->col_start],sizeof(Cell));
 
-    Cell a = array_create(f,t);
-    cell_copy(f,t,&a,(*t).rows[coords->row_start].cells[coords->col_start]);
+//    Cell a = array_create(f,t);
+    cell_copy(f,t,&tmp_vars->cell[number],(*t).rows[coords->row_start].cells[coords->col_start]);
 
-    tmp_vars->cell[number] = a;
 
     if (tmp_vars->size == number)
         tmp_vars->size++;
