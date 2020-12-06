@@ -51,7 +51,7 @@ typedef struct coords {
 
 typedef struct variable {
 
-    Cell* cell;
+    Cell cell[MAX_TMP_VARS];
 
 } Variables;
 
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
     table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
 
     Variables temporary_variables;
-    tmp_vars_init(f, &t, &temporary_variables);
+//    tmp_vars_init(f, &t, &temporary_variables);
 
     Coordinates c;
     coordinates_change(f, &t, &c, "1", "1", "1", "1");      //      creating first coordinates waypoint [1,1]
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 
     table_print(&t, delim[0]);
 
-    tmp_vars_dtor(&temporary_variables);
+//    tmp_vars_dtor(&temporary_variables);
     table_dtor(&t);         //      end of work
     fclose(f);
 
@@ -241,7 +241,7 @@ void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
     (void) f;
     (void) t;
 
-    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
+//    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
 
     printf("Tmp vars initialized!\n");
 
@@ -619,7 +619,8 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
-            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
+//            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
+            t->rows[i].cells[j] = vars->cell[number];
 
         }
 
@@ -658,7 +659,7 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
         problem(f,t,7);
 
 //    tmp_vars->cell[number] = t->rows[coords->row_start].cells[coords->col_start];
-    memcpy(&tmp_vars->cell[number],&t->rows[coords->row_start].cells[coords->col_start],sizeof(Cell));
+    tmp_vars->cell[number] = (*t).rows[coords->row_start].cells[coords->col_start];
 
 }
 
