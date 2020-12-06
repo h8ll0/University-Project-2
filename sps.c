@@ -185,7 +185,7 @@ void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
 void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *command1);
 
-
+//The function initializes temporary variables
 void tmp_vars_init(Variables *vars);
 
 void tmp_vars_dtor(Variables *vars);
@@ -270,11 +270,11 @@ int main(int argc, char **argv)
     //using all commands
     commands_use(f, &commands, &t, &coordinates, &tmp_coordinates, &temporary_variables);
 
-    fopen(filename,"w");
+    FILE *w = fopen(filename,"w");
     table_print(f, &t, delim[0]);
 
     tmp_vars_dtor(&temporary_variables);        //      end of work
-    fclose(f);
+    fclose(w);
     table_dtor(&t);
 
     return 0;
@@ -422,6 +422,7 @@ void tmp_vars_dtor(Variables *vars)
 
 }
 
+//The function initializes temporary variables
 void tmp_vars_init(Variables *vars)
 {
 
