@@ -620,7 +620,11 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
 //            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
-            t->rows[i].cells[j] = vars->cell[number];
+//            t->rows[i].cells[j] = vars->cell[number];
+//            array_dtor(&t->rows[i].cells[j]);
+//            t->rows[i].cells[j] = array_create(f,t);
+//            memcpy(&t->rows[i].cells[j],&vars->cell[number],sizeof(Cell));
+            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
 
         }
 
@@ -630,19 +634,17 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
 void cell_copy(FILE *f, Table *t, Cell *a, Cell b) {
 
-    char *tmp = realloc(a->word,b.size * sizeof(char));
+    int size = b.size;
+    char *tmp = realloc(a->word,size * sizeof(char));
 
-    if (tmp == NULL)
+    if (NULL == tmp)
         problem(f,t,1);
 
-    for (int i = 0; i < b.size; ++i) {
+    a->word = tmp;
+    a->size = size;
+    a->capacity = size;
 
-        a->word[i] = b.word[i];
-
-    }
-    a->size = b.size;
-    a->capacity = b.capacity;
-
+    memcpy(a->word,b.word,size * sizeof(char));
 
 }
 
@@ -659,7 +661,12 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
         problem(f,t,7);
 
 //    tmp_vars->cell[number] = t->rows[coords->row_start].cells[coords->col_start];
-    tmp_vars->cell[number] = (*t).rows[coords->row_start].cells[coords->col_start];
+//    tmp_vars->cell[number] = (*t).rows[coords->row_start].cells[coords->col_start];
+//    memcpy(&tmp_vars->cell[number],&t->rows[coords->row_start].cells[coords->col_start],sizeof(Cell));
+
+    Cell a = array_create(f,t);
+    cell_copy(f,t,&a,(*t).rows[coords->row_start].cells[coords->col_start]);
+    tmp_vars->cell[number] = a;
 
 }
 
