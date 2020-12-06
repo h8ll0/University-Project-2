@@ -344,18 +344,15 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 bool is_digit(char *string) {
 
-    bool result = 0;
-
     for (int i = 0; i < (int) strlen(string); ++i) {
 
-        if (string[i] > 47 && string[i] < 59) {
-            result = 1;
-        } else {
-            result = 0;
+        if (string[i] < 48 || string[i] > 57) {
+            return 0;
         }
 
     }
-    return result;
+
+    return true;
 
 }
 
