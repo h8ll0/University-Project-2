@@ -639,7 +639,7 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
         problem(f,t,7);
 
 //    tmp_vars->cell[number] = t->rows[coords->row_start].cells[coords->col_start];
-
+    memcpy(&tmp_vars->cell[number],&t->rows[coords->row_start].cells[coords->col_start],sizeof(Cell));
 
 }
 
