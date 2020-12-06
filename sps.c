@@ -21,7 +21,7 @@ typedef struct cell {
     int size;
     char *word;
 
-} Cell;
+} Cell;     // data type for cell
 
 typedef struct row {
 
@@ -29,7 +29,7 @@ typedef struct row {
     int size;
     Cell *cells;
 
-} Row;
+} Row;       // data type for row
 
 typedef struct table {
 
@@ -38,7 +38,7 @@ typedef struct table {
     int max_cells;
     Row *rows;
 
-} Table;
+} Table;         // data type for table
 
 typedef struct coords {
 
@@ -47,82 +47,110 @@ typedef struct coords {
     int col_start;
     int col_finish;
 
-} Coordinates;
+} Coordinates;       // data type for coordinates
 
 typedef struct variable {
 
     int size;
     Cell cell[MAX_TMP_VARS];
 
-} Variables;
+} Variables;         // data type for temporary variables
 
+//Constructor for cell
 void array_ctor(Cell *a);
 
+//Function that fills a cell
 int array_fill(FILE *f, Table *t, Cell *a, char *delim);
 
+//Function that resizes a cell
 void array_resize(FILE *f, Table *t, Cell *a, int i);
 
+//Function that appends char to cell
 void array_append(FILE *f, Table *t, Cell *a, int c);
 
+//Destructor for cell
 void array_dtor(Cell *a);
 
+//Constructor for row
 void row_ctor(Row *r);
 
+//Function that fills row
 int row_fill(FILE *f, Table *t, Row *r, char *delim);
 
+//Function that resizes row
 void row_resize(FILE *f, Table *t, Row *r, int i);
 
+//Function that appends cell to row
 void row_append(FILE *f, Table *t, Row *r, Cell *a, int idx);
 
+//Destructor for row
 void row_dtor(Row *r);
 
+//Constructor for table
 void table_ctor(Table *t);
 
+//Function that fills table with rows
 void table_fill(FILE *f, Table *t, char *delim);
 
+//Function that resizes table
 void table_resize(FILE *f, Table *t, int i);
 
+//Function that appends row to table
 void table_append(FILE *f, Table *t, Row *r);
 
-void table_print(Table *t, char delim);
+//Function that prints table
+void table_print(FILE *f, Table *t, char delim);
 
+//Destructor for table
 void table_dtor(Table *t);
 
+//The function transfers commands to an array
 void parse_commands(char *argv, Commands *commands);
 
+//The function uses commands
 void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars);
 
+//The function flattens the table
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
+//The function changes coordinates
 void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
 
+//The function creates row and returns it
 Row row_create(FILE *f, Table *t);
 
+//The function is called for error handling
 void problem(FILE *f, Table *t, int i);
 
+//The function checks if the string is a digit
 bool is_digit(char *string);
 
 void irow(FILE *f, Table *t, Coordinates *coords);
 
 void arow(FILE *f, Table *t, Coordinates *coords);
 
+//Function inserts a cell into a row
 void row_insert(FILE *f, Table *t, int idx);
 
 void drow(FILE *f, Table *t, Coordinates *coords);
 
-void table_sort(FILE *f, Table *t);
+//Function sorts table
+void table_sort(Table *t);
 
 void icol(FILE *f, Table *t, Coordinates *coords);
 
+//Function inserts cell to row
 void array_insert(FILE *f, Table *t, int idx);
 
-Cell array_create(FILE *f, Table *t);
+//Function creates array
+Cell array_create();
 
 void acol(FILE *f, Table *t, Coordinates *coords);
 
 void dcol(FILE *f, Table *t, Coordinates *coords);
 
-void row_sort(FILE *f, Table *t, Row *r, int i);
+//Function sorts row
+void row_sort(Row *r, int i);
 
 void find_max(FILE *f, Table *t, Coordinates *coords);
 
@@ -132,18 +160,21 @@ void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR);
 
 void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR);
 
-void clear(FILE *f, Table *t, Coordinates *coords);
+void clear(Table *t, Coordinates *coords);
 
 void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
 
-void swap_cells(FILE *f, Table *t, Cell *a, Cell *b);
+void swap_cells(Cell *a, Cell *b);
 
 void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
 
+//The function converts the contents of a cell to a string
 char *cell_to_string(FILE *f, Table *t, Cell *cell);
 
+//The function changes the contents of a cell
 void cell_set_word(FILE *f, Table *t, Cell *a, char *word);
 
+//The function returns the cell at the selected coordinates
 Cell * get_cell(FILE *f, Table *t, int y, int x);
 
 void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
@@ -181,11 +212,6 @@ void delete_quots(FILE *f, Table *t, Cell *c);
 int main(int argc, char **argv)
 {
 
-//    argv[1] = "irow";
-//    argv[2] = "tab1.txt";
-//    argc = 3;
-
-
     char *delim = NULL;
     char *filename = NULL;
 
@@ -222,41 +248,47 @@ int main(int argc, char **argv)
     }
 
     Table t;
-
-
     table_ctor(&t);
     table_fill(f, &t, delim);       //      filling table with words
     table_set_slash(f,&t,delim);
+    fclose(f);
 
-    table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
+    //      normalizing table (all rows has one column number)
+    table_normalize(f, &t, t.max_cells-1, t.size-1);
 
     Variables temporary_variables;
     tmp_vars_init(f, &t, &temporary_variables);
 
-    Coordinates c;
-    coordinates_change(f, &t, &c, "1", "1", "1", "1");      //      creating first coordinates waypoint [1,1]
-    Coordinates tmp;
-    coordinates_change(f, &t, &tmp, "1", "1", "1", "1");
+    Coordinates coordinates;
+    //      creating first coordinates waypoint [1,1]
+    coordinates_change(f, &t, &coordinates, "1", "1", "1", "1");
+    Coordinates tmp_coordinates;
+    coordinates_change(f, &t, &tmp_coordinates, "1", "1", "1", "1");
 
 
-    commands_use(f, &commands, &t, &c, &tmp, &temporary_variables);     //using all commands
+    //using all commands
+    commands_use(f, &commands, &t, &coordinates, &tmp_coordinates, &temporary_variables);
 
-    table_print(&t, delim[0]);
+    fopen(filename,"w");
+    table_print(f, &t, delim[0]);
 
-    tmp_vars_dtor(&temporary_variables);
-    table_dtor(&t);         //      end of work
+    tmp_vars_dtor(&temporary_variables);        //      end of work
     fclose(f);
+    table_dtor(&t);
 
     return 0;
 }
 
-void table_set_slash(FILE *f, Table *t, char *delim) {
+void table_set_slash(FILE *f, Table *t, char *delim)
+{
 
     int size;
 
-    for (int i = 0; i < t->size; ++i) {
+    for (int i = 0; i < t->size; ++i)
+    {
 
-        for (int j = 0; j < t->rows[i].size; ++j) {
+        for (int j = 0; j < t->rows[i].size; ++j)
+        {
 
             size = t->rows[i].cells[j].size;
 
@@ -272,7 +304,8 @@ void table_set_slash(FILE *f, Table *t, char *delim) {
                         set_slash(f, t, &t->rows[i].cells[j]);
 
 
-                    }else
+                    }
+                    else
                     {
 
                         delete_quots(f,t,&t->rows[i].cells[j]);
@@ -289,9 +322,11 @@ void table_set_slash(FILE *f, Table *t, char *delim) {
 
 }
 
-void delete_quots(FILE *f, Table *t, Cell *c) {
+void delete_quots(FILE *f, Table *t, Cell *c)
+{
 
-    for (int i = 0; i < c->size; ++i) {
+    for (int i = 0; i < c->size; ++i)
+    {
 
         c->word[i] = c->word[i+1];
 
@@ -308,9 +343,11 @@ void delete_quots(FILE *f, Table *t, Cell *c) {
 
 }
 
-void set_slash(FILE *f, Table *t, Cell *c) {
+void set_slash(FILE *f, Table *t, Cell *c)
+{
 
-    for (int i = 1; i < c->size-1; ++i) {
+    for (int i = 1; i < c->size-1; ++i)
+    {
 
         if (c->word[i] == '\\' || c->word[i] == '\"')
         {
@@ -325,7 +362,8 @@ void set_slash(FILE *f, Table *t, Cell *c) {
 
 }
 
-void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t) {
+void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t)
+{
 
     if (c->size == c->capacity)
     {
@@ -335,7 +373,8 @@ void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t) {
     if (c->size < c->capacity)
     {
 
-        for (int i = c->size - 1; i >= idx ; i--) {
+        for (int i = c->size - 1; i >= idx ; i--)
+        {
 
             c->word[i+1] = c->word[i];
 
@@ -348,11 +387,14 @@ void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t) {
 
 }
 
-int check_delim(Cell *c, char *delim) {
+int check_delim(Cell *c, char *delim)
+{
 
-    for (int i = 0; i < c->size; ++i) {
+    for (int i = 0; i < c->size; ++i)
+    {
 
-        for (int j = 0; j < (int) strlen(delim); ++j) {
+        for (int j = 0; j < (int) strlen(delim); ++j)
+        {
 
             if  (c->word[i] == delim[j])
                 return 1;
@@ -366,38 +408,40 @@ int check_delim(Cell *c, char *delim) {
 }
 
 
-void tmp_vars_dtor(Variables *vars) {
+void tmp_vars_dtor(Variables *vars)
+{
 
-    for (int i = 0; i < vars->size; ++i) {
+    for (int i = 0; i < vars->size; ++i)
+    {
 
         array_dtor(&vars->cell[i]);
 
     }
 
-//    free(vars->cell);
 
 }
 
-void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
+void tmp_vars_init(FILE *f, Table *t, Variables *vars)
+{
 
-    (void) f;
-    (void) t;
-
-//    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
     vars->size = 0;
 
-    for (int i = 0; i < MAX_TMP_VARS; ++i) {
+    for (int i = 0; i < MAX_TMP_VARS; ++i)
+    {
 
-        vars->cell[i] = array_create(f,t);
+        vars->cell[i] = array_create();
 
     }
 
-    printf("Tmp vars initialized!\n");
 
 }
 
+//The function changes coordinates
 void
-coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish) {
+coordinates_change(FILE *f, Table *t, Coordinates *coords,
+                   char *r_start, char *c_start, char *r_finish,
+                   char *c_finish)
+{
 
     int row_start_int;
     int row_finish_int;
@@ -406,13 +450,16 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 
     // row start
-    if  (r_start) {
+    if  (r_start)
+    {
 
-        if (strcmp(r_start, "_") == 0) {
+        if (strcmp(r_start, "_") == 0)
+        {
             coords->row_start = 0;
             coords->row_finish = t->size - 1;
 
-        } else if (is_digit(r_start)) {
+        } else if (is_digit(r_start))
+        {
 
             row_start_int = (int) atoi(r_start) - 1;
 
@@ -430,13 +477,16 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 
     // col start
-    if  (c_start) {
+    if  (c_start)
+    {
 
-        if (strcmp(c_start, "_") == 0) {
+        if (strcmp(c_start, "_") == 0)
+        {
             coords->col_start = 0;
             coords->col_finish = t->max_cells - 1;
 
-        } else if (is_digit(c_start)) {
+        } else if (is_digit(c_start))
+        {
 
             col_start_int = (int) atoi(c_start) - 1;
 
@@ -520,20 +570,17 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
     }
 
-
-
-
-//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
-
-
 }
 
-bool is_digit(char *string) {
+//The function checks if the string is a digit
+bool is_digit(char *string)
+{
 
-    for (int i = 0; i < (int) strlen(string); ++i) {
+    for (int i = 0; i < (int) strlen(string); ++i)
+    {
 
-        if (string[i] < 48 || string[i] > 57) {
+        if (string[i] < 48 || string[i] > 57)
+        {
             return 0;
         }
 
@@ -543,17 +590,19 @@ bool is_digit(char *string) {
 
 }
 
-void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
+//The function flattens the table
+void table_normalize(FILE *f, Table *t, int max_cells, int max_rows)
+{
 
-//    printf("Max cells: %i\n",max_cells);
-//    printf("Max rows: %i\n",max_rows);
 
-    for (int i = 0; i < t->size; i++) {
+    for (int i = 0; i < t->size; i++)
+    {
 
         if  (t->rows[i].size <= max_cells)
         {
 
-            for (int j = t->rows[i].size; j <= max_cells; ++j) {
+            for (int j = t->rows[i].size; j <= max_cells; ++j)
+            {
 
                 Cell a;
                 array_ctor(&a);
@@ -567,7 +616,8 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
     }
 
-    for (int i = t->size; i <= max_rows; i++) {
+    for (int i = t->size; i <= max_rows; i++)
+    {
 
         Row tmp_row = row_create(f, t);
         table_append(f, t, &tmp_row);
@@ -576,19 +626,19 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
 }
 
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars) {
+//The function uses commands
+void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars)
+{
 
-    char command1[50];
-    char command2[50];
-    char command3[50];
-    char command4[50];
+    char command1[1000];
+    char command2[1000];
+    char command3[1000];
+    char command4[1000];
 
     for (int i = 0; i < commds->size; i++)
     {
-        printf("%s\n", commds->item[i]);
         if (strcmp(commds->item[i], "[set]") == 0)
         {
-            printf("cmnd: set ""\n");
             set_coords(coords, tmp);
             continue;
         }
@@ -604,7 +654,6 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (strcmp(commds->item[i], "[_]") == 0)
         {
-            printf("cmnd: \'_\'\n");
             use_coords(coords, tmp);
             continue;
         }
@@ -640,18 +689,16 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (strcmp(commds->item[i], "clear") == 0)
         {
-            clear(f,t,coords);
+            clear(t, coords);
             continue;
         }
         else if (sscanf(commds->item[i], "[%[^,],%[^,],%[^,],%[^]]]", command1, command2, command3, command4) == 4)
         {
-//            printf("cmnd choose1: \'%s\' \'%s\' \'%s\' \'%s\'\n",command1,command2,command3,command4);
             coordinates_change(f, t, coords, command1, command2, command3, command4);
             continue;
         }
         else if (sscanf(commds->item[i], "[%[^,],%[^]]]", command1, command2) == 2)
         {
-//            printf("cmnd choose2: \'%s\' \'%s\'\n",command1,command2);
             coordinates_change(f, t, coords, command1, command2, NULL, NULL);
             continue;
         }
@@ -662,13 +709,11 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (sscanf(commds->item[i], "swap [%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd swap: \'%s\' \'%s\'\n",command1,command2);
             swap(f,t,coords,command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "sum [%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd sum: \'%s\' \'%s\'\n",command1,command2);
             sum(f, t, coords, command1, command2);
             continue;
         }
@@ -679,7 +724,6 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (sscanf(commds->item[i], "count [%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd count: \'%s\' \'%s\'\n",command1,command2);
             count(f,t,coords,command1,command2);
             continue;
         }
@@ -695,40 +739,33 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (sscanf(commds->item[i], "def _%s", command1) == 1)
         {
-            printf("cmnd def: \'%s\'\n",command1);
             define(f, t, coords, tmp_vars, command1);
             continue;
         }
         else if (sscanf(commds->item[i], "use _%s", command1) == 1)
         {
-            printf("cmnd use: \'%s\'\n",command1);
             use(f,t,coords,tmp_vars,command1);
             continue;
         }
         else if (sscanf(commds->item[i], "inc _%s", command1) == 1)
         {
-            printf("cmnd inc: \'%s\'\n",command1);
             inc(f,t,tmp_vars,command1);
             continue;
         }
         else if (sscanf(commds->item[i], "goto +%s", command1) == 1)
         {
-            printf("cmnd goto+: \'%s\'\n",command1);
             continue;
         }
         else if (sscanf(commds->item[i], "goto -%s", command1) == 1)
         {
-            printf("cmnd goto-: \'%s\'\n",command1);
             continue;
         }
         else if (sscanf(commds->item[i], "iszero _%[^ ]%s", command1, command2) == 2)
         {
-            printf("cmnd iszero: \'%s\' \'%s\'\n",command1,command2);
             continue;
         }
         else if (sscanf(commds->item[i], "sub _%[^ ] _%s", command1, command2) == 2)
         {
-            printf("cmnd sub: \'%s\' \'%s\'\n",command1,command2);
             continue;
         }
 
@@ -737,7 +774,8 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
 
 }
 
-void use_coords(Coordinates *coords, Coordinates *tmp) {
+void use_coords(Coordinates *coords, Coordinates *tmp)
+{
 
     coords->row_start = (*tmp).row_start;
     coords->row_finish = (*tmp).row_finish;
@@ -746,7 +784,8 @@ void use_coords(Coordinates *coords, Coordinates *tmp) {
 
 }
 
-void set_coords(Coordinates *coords, Coordinates *tmp) {
+void set_coords(Coordinates *coords, Coordinates *tmp)
+{
 
     tmp->row_start = (*coords).row_start;
     tmp->row_finish = (*coords).row_finish;
@@ -755,13 +794,15 @@ void set_coords(Coordinates *coords, Coordinates *tmp) {
 
 }
 
-void inc(FILE *f, Table *t, Variables *vars, char *command1) {
+void inc(FILE *f, Table *t, Variables *vars, char *command1)
+{
 
     (void) vars;
     int number = 0;
     char tmp_number[1000];
 
-    if (is_digit(command1)){
+    if (is_digit(command1))
+    {
 
         number = (int) atoi(command1);
     }
@@ -774,11 +815,13 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1) {
 
     char *tmp = cell_to_string(f,t,&vars->cell[number]);
 
-    if (is_digit(tmp)){
+    if (is_digit(tmp))
+    {
 
         sprintf(tmp_number,"%i",(int) atoi(tmp) + 1);
 
-    }else
+    }
+    else
     {
 
         sprintf(tmp_number,"%i", 1);
@@ -802,12 +845,13 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1) {
 
 }
 
-void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1) {
+void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1)
+{
 
     int number = 0;
 
-    if (is_digit(command1)){
-
+    if (is_digit(command1))
+    {
         number = (int) atoi(command1);
     }
 
@@ -817,15 +861,12 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
     if  (number > vars->size)
         problem(f,t,8);
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
-//            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
-//            t->rows[i].cells[j] = vars->cell[number];
-//            array_dtor(&t->rows[i].cells[j]);
-//            t->rows[i].cells[j] = array_create(f,t);
-//            memcpy(&t->rows[i].cells[j],&vars->cell[number],sizeof(Cell));
             cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
 
         }
@@ -834,7 +875,8 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
 }
 
-void cell_copy(FILE *f, Table *t, Cell *a, Cell b) {
+void cell_copy(FILE *f, Table *t, Cell *a, Cell b)
+{
 
     int size = b.size;
     char *tmp = realloc(a->word,size * sizeof(char));
@@ -850,11 +892,13 @@ void cell_copy(FILE *f, Table *t, Cell *a, Cell b) {
 
 }
 
-void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *command1) {
+void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *command1)
+{
 
     int number = 0;
 
-    if (is_digit(command1)){
+    if (is_digit(command1))
+    {
 
         number = (int) atoi(command1);
     }
@@ -862,11 +906,6 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
     if  (number < 0 || number > 9)
         problem(f,t,7);
 
-//    tmp_vars->cell[number] = t->rows[coords->row_start].cells[coords->col_start];
-//    tmp_vars->cell[number] = (*t).rows[coords->row_start].cells[coords->col_start];
-//    memcpy(&tmp_vars->cell[number],&t->rows[coords->row_start].cells[coords->col_start],sizeof(Cell));
-
-//    Cell a = array_create(f,t);
     cell_copy(f,t,&tmp_vars->cell[number],(*t).rows[coords->row_start].cells[coords->col_start]);
 
 
@@ -875,7 +914,8 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
 
 }
 
-void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
+{
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
@@ -886,7 +926,8 @@ void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
     Cell *a = get_cell(f,t,coords->col_start,coords->col_finish);
 
-    for (int i = 0; i < a->size; ++i) {
+    for (int i = 0; i < a->size; ++i)
+    {
 
         if (a->word[i] != '\\')
             len++;
@@ -900,7 +941,8 @@ void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
 }
 
-void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
+{
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
@@ -910,9 +952,11 @@ void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command
     char tmp_word[1000];
     int cell_counter = 0;
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             Cell *b = get_cell(f,t,i,j);
 
@@ -934,7 +978,8 @@ void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command
 
 }
 
-void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
+{
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
@@ -946,9 +991,11 @@ void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
     float cell_counter = 0;
     bool set = false;
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             tmp_word = cell_to_string(f,t,&t->rows[i].cells[j]);
 
@@ -975,11 +1022,10 @@ void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
     }
 
-    printf("Sum: %g\n",sum);
-
 }
 
-void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
+{
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
@@ -990,9 +1036,11 @@ void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
     float sum = 0;
     char* tmp_word;
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             tmp_word = cell_to_string(f,t,&t->rows[i].cells[j]);
 
@@ -1010,11 +1058,11 @@ void sum(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
     }
 
-    printf("Sum: %g\n",sum);
-
 }
 
-Cell *get_cell(FILE *f, Table *t, int y, int x) {
+//The function returns the cell at the selected coordinates
+Cell *get_cell(FILE *f, Table *t, int y, int x)
+{
 
     (void) f;
 
@@ -1022,10 +1070,9 @@ Cell *get_cell(FILE *f, Table *t, int y, int x) {
 
 }
 
-void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
-
-    (void) f;
-    (void) t;
+//The function changes the contents of a cell
+void cell_set_word(FILE *f, Table *t, Cell *a, char *word)
+{
 
     int size = (int) strlen(word);
     char *tmp = realloc(a->word,size * sizeof(char));
@@ -1033,7 +1080,8 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
     if  (NULL == tmp)
         problem(f,t,1);
 
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i)
+    {
 
         tmp[i] = word[i];
 
@@ -1045,10 +1093,9 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
 
 }
 
-char *cell_to_string(FILE *f, Table *t, Cell *cell) {
-
-    (void) f;
-    (void) t;
+//The function converts the contents of a cell to a string
+char *cell_to_string(FILE *f, Table *t, Cell *cell)
+{
 
     char *tmp = realloc(cell->word,(cell->size+1) * sizeof(char));
 
@@ -1062,7 +1109,8 @@ char *cell_to_string(FILE *f, Table *t, Cell *cell) {
     return cell->word;
 }
 
-void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
+void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
+{
 
     int y = (int) atoi(command1) - 1;
     int x = (int) atoi(command2) - 1;
@@ -1071,12 +1119,14 @@ void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2
 
     Cell *a = &t->rows[y].cells[x];
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             Cell *b = &t->rows[i].cells[j];
-            swap_cells(f,t,b,a);
+            swap_cells(b, a);
             a = &t->rows[y].cells[x];
 
         }
@@ -1086,23 +1136,23 @@ void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2
 
 }
 
-void swap_cells(FILE *f, Table *t, Cell *a, Cell *b) {
+void swap_cells(Cell *a, Cell *b)
+{
 
-    (void) f;
-    (void) t;
     Cell tmp = *a;
     *a = *b;
     *b = tmp;
 
 }
 
-void clear(FILE *f, Table *t, Coordinates *coords) {
+void clear(Table *t, Coordinates *coords)
+{
 
-    (void) f;
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
-
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             array_dtor(&t->rows[i].cells[j]);
 
@@ -1112,15 +1162,17 @@ void clear(FILE *f, Table *t, Coordinates *coords) {
 
 }
 
-void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
+void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR)
+{
 
     int size;
-
     char *tmp_array;
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             size = (int) strlen(STR);
 
@@ -1141,16 +1193,19 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
 }
 
-void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
+void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR)
+{
 
     char *tmp = NULL;
 
     int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
     int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
 
-    for (int i = row_start_int; i <= row_finish_int; ++i) {
+    for (int i = row_start_int; i <= row_finish_int; ++i)
+    {
 
-        for (int j = col_start_int; j <= col_finish_int; ++j) {
+        for (int j = col_start_int; j <= col_finish_int; ++j)
+        {
 
             tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
@@ -1166,14 +1221,11 @@ void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
         }
 
     }
-//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 }
 
-void find_min(FILE *f, Table *t, Coordinates *coords) {
-
-    (void) f;
+void find_min(FILE *f, Table *t, Coordinates *coords)
+{
 
     float min = 0;
     char *tmp = NULL;
@@ -1181,15 +1233,16 @@ void find_min(FILE *f, Table *t, Coordinates *coords) {
     int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
     int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
 
-    for (int i = row_start_int; i <= row_finish_int; ++i) {
+    for (int i = row_start_int; i <= row_finish_int; ++i)
+    {
 
-        for (int j = col_start_int; j <= col_finish_int; ++j) {
+        for (int j = col_start_int; j <= col_finish_int; ++j)
+        {
 
             tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
             if  (is_digit(tmp))
             {
-                printf("%s\n",tmp);
                 if  ((float) atof(tmp) < min || !set)
                 {
                     min = (float) atof(tmp);
@@ -1205,15 +1258,11 @@ void find_min(FILE *f, Table *t, Coordinates *coords) {
         }
 
     }
-//    printf("Min: %f\n",min);
-//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 }
 
-void find_max(FILE *f, Table *t, Coordinates *coords) {
-
-    (void) f;
+void find_max(FILE *f, Table *t, Coordinates *coords)
+{
 
     float max = 0;
     char *tmp = NULL;
@@ -1221,15 +1270,16 @@ void find_max(FILE *f, Table *t, Coordinates *coords) {
     int row_start_int = coords->row_start, row_finish_int = coords->row_finish;
     int col_start_int = coords->col_start, col_finish_int = coords->col_finish;
 
-    for (int i = row_start_int; i <= row_finish_int; ++i) {
+    for (int i = row_start_int; i <= row_finish_int; ++i)
+    {
 
-        for (int j = col_start_int; j <= col_finish_int; ++j) {
+        for (int j = col_start_int; j <= col_finish_int; ++j)
+        {
 
             tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
             if  (is_digit(tmp))
                 {
-                    printf("%s\n",tmp);
                     if  ((float) atof(tmp) > max || !set)
                     {
                         max = (float) atof(tmp);
@@ -1245,14 +1295,11 @@ void find_max(FILE *f, Table *t, Coordinates *coords) {
         }
 
     }
-//    printf("Max: %.f\n",max);
-//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
-
 
 }
 
-void dcol(FILE *f, Table *t, Coordinates *coords) {
+void dcol(FILE *f, Table *t, Coordinates *coords)
+{
 
     if (coords->col_start == 0 && coords->col_finish == t->max_cells-1)
     {
@@ -1262,11 +1309,12 @@ void dcol(FILE *f, Table *t, Coordinates *coords) {
 
     for (int i = 0; i < t->size; ++i) {
 
-        for (int j = coords->col_start; j <= coords->col_finish; ++j) {
+        for (int j = coords->col_start; j <= coords->col_finish; ++j)
+        {
 
             array_dtor(&t->rows[i].cells[j]);
             t->rows[i].size--;
-            row_sort(f, t, &t->rows[i], j);
+            row_sort(&t->rows[i], j);
 
         }
 
@@ -1275,12 +1323,12 @@ void dcol(FILE *f, Table *t, Coordinates *coords) {
 
 }
 
-void row_sort(FILE *f, Table *t, Row *r, int i) {
+//Function sorts row
+void row_sort(Row *r, int i)
+{
 
-    (void) f;
-    (void) t;
-
-    for (int j = i; j < r->size; ++j) {
+    for (int j = i; j < r->size; ++j)
+    {
 
         r->cells[j] = r->cells[j+1];
 
@@ -1288,7 +1336,8 @@ void row_sort(FILE *f, Table *t, Row *r, int i) {
 
 }
 
-void acol(FILE *f, Table *t, Coordinates *coords) {
+void acol(FILE *f, Table *t, Coordinates *coords)
+{
 
 
     int idx = coords->col_finish + 1;
@@ -1296,64 +1345,74 @@ void acol(FILE *f, Table *t, Coordinates *coords) {
 
 }
 
-void icol(FILE *f, Table *t, Coordinates *coords) {
+void icol(FILE *f, Table *t, Coordinates *coords)
+{
 
     int idx = coords->col_start;
     array_insert(f,t,idx);
 
 }
 
-void array_insert(FILE *f, Table *t, int idx) {
+//Function inserts cell to row
+void array_insert(FILE *f, Table *t, int idx)
+{
 
-    for (int i = 0; i < t->size; ++i) {
+    for (int i = 0; i < t->size; ++i)
+    {
 
         if  (t->rows[i].size == t->rows[i].capacity)
         {
             row_resize(f,t,&t->rows[i],1);
         }
 
-        for (int j = t->rows[i].size - 1; j >= idx; j--) {
+        for (int j = t->rows[i].size - 1; j >= idx; j--)
+        {
 
             t->rows[i].cells[j + 1] = t->rows[i].cells[j];
 
         }
-        t->rows[i].cells[idx] = array_create(f,t);
+        t->rows[i].cells[idx] = array_create();
         t->rows[i].size++;
 
     }
 
 }
 
-Cell array_create(FILE *f, Table *t) {
+//Function creates array
+Cell array_create()
+{
 
-    (void) f;
-    (void) t;
     Cell result;
     array_ctor(&result);
 
     return result;
 }
 
-void drow(FILE *f, Table *t, Coordinates *coords) {
+void drow(FILE *f, Table *t, Coordinates *coords)
+{
 
-    for (int i = coords->row_start; i <= coords->row_finish; ++i) {
+    for (int i = coords->row_start; i <= coords->row_finish; ++i)
+    {
 
         row_dtor(&t->rows[i]);
 
     }
 
-    table_sort(f,t);
+    table_sort(t);
 
 }
 
-void table_sort(FILE *f, Table *t) {
+//Function sorts table
+void table_sort(Table *t)
+{
 
-    (void) f;
-    for (int i = 0; i < t->size; ++i) {
+    for (int i = 0; i < t->size; ++i)
+    {
 
         if  (t->rows[i].cells == NULL)
         {
-            for (int j = i; j < t->size-1; ++j) {
+            for (int j = i; j < t->size-1; ++j)
+            {
 
                 t->rows[j] = t->rows[j+1];
 
@@ -1368,14 +1427,17 @@ void table_sort(FILE *f, Table *t) {
 
 }
 
-void arow(FILE *f, Table *t, Coordinates *coords) {
+void arow(FILE *f, Table *t, Coordinates *coords)
+{
 
     int idx = coords->row_finish + 1;
     row_insert(f, t, idx);
 
 }
 
-void row_insert(FILE *f, Table *t, int idx) {
+//Function inserts a cell into a row
+void row_insert(FILE *f, Table *t, int idx)
+{
 
     if (t->size == t->capacity)
         table_resize(f,t,1);
@@ -1391,20 +1453,23 @@ void row_insert(FILE *f, Table *t, int idx) {
 
 }
 
-void irow(FILE *f, Table *t, Coordinates *coords) {
+void irow(FILE *f, Table *t, Coordinates *coords)
+{
 
     int idx = coords->row_start;
     row_insert(f, t, idx);
 
 }
 
-Row row_create(FILE *f, Table *t) {
+//The function creates row and returns it
+Row row_create(FILE *f, Table *t)
+{
 
-    (void) f;
     Row new_row;
     row_ctor(&new_row);
 
-    for (int j = 0; j < t->max_cells; j++) {
+    for (int j = 0; j < t->max_cells; j++)
+    {
 
         Cell a;
         array_ctor(&a);
@@ -1416,7 +1481,9 @@ Row row_create(FILE *f, Table *t) {
     return new_row;
 }
 
-void problem(FILE *f, Table *t, int i) {
+//The function is called for error handling
+void problem(FILE *f, Table *t, int i)
+{
 
     switch (i) {
 
@@ -1456,7 +1523,9 @@ void problem(FILE *f, Table *t, int i) {
     exit(1);
 }
 
-void parse_commands(char *argv, Commands *commands) {
+//The function transfers commands to an array
+void parse_commands(char *argv, Commands *commands)
+{
 
     int i = 0;
     char *result = strtok (argv,";");
@@ -1488,7 +1557,9 @@ void parse_commands(char *argv, Commands *commands) {
 
 }
 
-void table_dtor(Table *t) {
+//Destructor for table
+void table_dtor(Table *t)
+{
 
     while (t->size != 0)
     {
@@ -1506,15 +1577,17 @@ void table_dtor(Table *t) {
 
 }
 
-void table_print(Table *t, char delim) {
+//Function that prints table
+void table_print(FILE *f, Table *t, char delim)
+{
 
     int d;
 
-    printf("Max cells: %i\n",t->max_cells);
+    for (int i = 0; i < t->max_cells; ++i)
+    {
 
-    for (int i = 0; i < t->max_cells; ++i) {
-
-        for (int j = 0; j < t->size; ++j) {
+        for (int j = 0; j < t->size; ++j)
+        {
 
             if  (t->rows[j].cells[i].size != 0)
                 d = i+1;
@@ -1523,37 +1596,37 @@ void table_print(Table *t, char delim) {
 
     }
 
-    printf("Last not null col is %i\n",d);
 
 
-//    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
-    for (int i = 0; i < t->size; i++) {
+    for (int i = 0; i < t->size; i++)
+    {
 
-//        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
+        for (int j = 0; j < d; j++)
+        {
 
+            for (int k = 0; k < t->rows[i].cells[j].size; ++k)
+            {
 
-        for (int j = 0; j < d; j++) {
-
-            for (int k = 0; k < t->rows[i].cells[j].size; ++k) {
-
-                printf("%c", t->rows[i].cells[j].word[k]);
+                fprintf(f,"%c",t->rows[i].cells[j].word[k]);
 
             }
 
             if (d - 1 != j)
-                printf("%c", delim);
+                fprintf(f,"%c",delim);
+
 
         }
 
-        if (t->size-1 != i)
-            printf("\n");
+        fprintf(f,"\n");
 
 
     }
 
 }
 
-void table_fill(FILE *f, Table *t, char *delim) {
+//Function that fills table with rows
+void table_fill(FILE *f, Table *t, char *delim)
+{
 
     int choose = 0;
 
@@ -1569,7 +1642,9 @@ void table_fill(FILE *f, Table *t, char *delim) {
 
 }
 
-void table_append(FILE *f, Table *t, Row *r) {
+//Function that appends row to table
+void table_append(FILE *f, Table *t, Row *r)
+{
 
     table_resize(f, t, 1);
 
@@ -1578,7 +1653,9 @@ void table_append(FILE *f, Table *t, Row *r) {
 
 }
 
-void table_resize(FILE *f, Table *t, int i) {
+//Function that resizes table
+void table_resize(FILE *f, Table *t, int i)
+{
 
     Row *tmp_table;
 
@@ -1595,7 +1672,9 @@ void table_resize(FILE *f, Table *t, int i) {
 
 }
 
-void table_ctor(Table *t) {
+//Constructor for table
+void table_ctor(Table *t)
+{
 
     t->capacity = 0;
     t->size = 0;
@@ -1604,7 +1683,9 @@ void table_ctor(Table *t) {
 
 }
 
-int row_fill(FILE *f, Table *t, Row *r, char *delim) {
+//Function that fills row
+int row_fill(FILE *f, Table *t, Row *r, char *delim)
+{
 
     int choose = 0;
     int i = 0;
@@ -1631,7 +1712,9 @@ int row_fill(FILE *f, Table *t, Row *r, char *delim) {
 
 }
 
-void row_append(FILE *f, Table *t, Row *r, Cell *a, int idx) {
+//Function that appends cell to row
+void row_append(FILE *f, Table *t, Row *r, Cell *a, int idx)
+{
 
     if  (idx == -1){
 
@@ -1644,7 +1727,9 @@ void row_append(FILE *f, Table *t, Row *r, Cell *a, int idx) {
 
 }
 
-void row_resize(FILE *f, Table *t, Row *r, int i) {
+//Function that resizes row
+void row_resize(FILE *f, Table *t, Row *r, int i)
+{
 
     Cell *tmp_row;
     tmp_row = realloc(r->cells, (r->capacity + i) * sizeof(Cell));
@@ -1661,7 +1746,9 @@ void row_resize(FILE *f, Table *t, Row *r, int i) {
 
 }
 
-void row_ctor(Row *r) {
+//Constructor for row
+void row_ctor(Row *r)
+{
 
     r->capacity = 0;
     r->size = 0;
@@ -1669,7 +1756,9 @@ void row_ctor(Row *r) {
 
 }
 
-void row_dtor(Row *r) {
+//Destructor for row
+void row_dtor(Row *r)
+{
 
     while (r->size != 0)
     {
@@ -1687,6 +1776,7 @@ void row_dtor(Row *r) {
 
 }
 
+//Constructor for cell
 void array_ctor(Cell *a)
 {
 
@@ -1696,6 +1786,7 @@ void array_ctor(Cell *a)
 
 }
 
+//Function that resizes a cell
 void array_resize(FILE *f, Table *t, Cell *a, int i)
 {
 
@@ -1713,6 +1804,7 @@ void array_resize(FILE *f, Table *t, Cell *a, int i)
 
 }
 
+//Function that appends char to cell
 void array_append(FILE *f, Table *t, Cell *a, int c)
 {
 
@@ -1722,7 +1814,9 @@ void array_append(FILE *f, Table *t, Cell *a, int c)
 
 }
 
-int array_fill(FILE *f, Table *t, Cell *a, char *delim) {
+//Function that fills a cell
+int array_fill(FILE *f, Table *t, Cell *a, char *delim)
+{
 
     int c = getc(f);
     int counter = 0;
@@ -1776,47 +1870,9 @@ int array_fill(FILE *f, Table *t, Cell *a, char *delim) {
 
     }
 
-//    int c = getc(f);
-//
-//    while (1)
-//    {
-//        if (c == EOF)
-//            return 1;
-//        if (c == '\n')
-//            return 2;
-//
-//        if (c == '\\')
-//        {
-//
-//            array_append(f, t, a, c);
-//            c = getc(f);
-//            array_append(f, t, a, c);
-//            c = getc(f);
-//
-//        }
-//        if  (c == '\"')
-//        {
-//            array_append(f, t, a, '\\');
-//            array_append(f, t, a, c);
-//            c = getc(f);
-//        }
-//
-//        for (int i = 0; delim[i] ; i++)
-//        {
-//
-//            if (c == delim[i])
-//                return 0;
-//
-//        }
-//
-//
-//        array_append(f, t, a, c);
-//        c = getc(f);
-//
-//    }
-
 }
 
+//Destructor for cell
 void array_dtor(Cell *a)
 {
 
