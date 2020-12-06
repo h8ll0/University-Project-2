@@ -108,13 +108,15 @@ void table_dtor(Table *t);
 void parse_commands(char *argv, Commands *commands);
 
 //The function uses commands
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars);
+void commands_use(FILE *f, Commands *commds, Table *t,
+                  Coordinates *coords, Coordinates *tmp, Variables *tmp_vars);
 
 //The function flattens the table
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
 //The function changes coordinates
-void coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *c_start, char *r_finish, char *c_finish);
+void coordinates_change(FILE *f, Table *t, Coordinates *coords,
+                        char *r_start, char *c_start, char *r_finish, char *c_finish);
 
 //The function creates row and returns it
 Row row_create(FILE *f, Table *t);
@@ -177,37 +179,51 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word);
 //The function returns the cell at the selected coordinates
 Cell * get_cell(FILE *f, Table *t, int y, int x);
 
-void avg(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+void avg(FILE *f, Table *t, Coordinates *coords,
+         char *command1, char *command2);
 
-void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+void count(FILE *f, Table *t, Coordinates *coords,
+           char *command1, char *command2);
 
-void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
+void len(FILE *f, Table *t, Coordinates *coords,
+         char *command1, char *command2);
 
-void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *command1);
+void define(FILE *f, Table *t, Coordinates *coords,
+            Variables *tmp_vars, char *command1);
 
 //The function initializes temporary variables
 void tmp_vars_init(Variables *vars);
 
 void tmp_vars_dtor(Variables *vars);
 
-void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1);
+void use(FILE *f, Table *t, Coordinates *coords,
+         Variables *vars, char *command1);
 
+//The function [set]
 void inc(FILE *f, Table *t, Variables *vars, char *command1);
 
+//The function copies cell
 void cell_copy(FILE *f, Table *t, Cell *a, Cell b);
 
+//The function [_]
 void set_coords(Coordinates *coords, Coordinates *tmp);
 
+//The function [set]
 void use_coords(Coordinates *coords, Coordinates *tmp);
 
+//The function sets slashes if "
 void table_set_slash(FILE *f, Table *t, char *delim);
 
+//The function checks if cell has delim
 int check_delim(Cell *c, char *delim);
 
+//The function sets slashes if "
 void set_slash(FILE *f, Table *t, Cell *c);
 
+//Function inserts a char in cell
 void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t);
 
+//Function deletes ""
 void delete_quots(FILE *f, Table *t, Cell *c);
 
 int main(int argc, char **argv)
@@ -264,13 +280,16 @@ int main(int argc, char **argv)
 
     Coordinates coordinates;
     //      creating first coordinates waypoint [1,1]
-    coordinates_change(f, &t, &coordinates, "1", "1", "1", "1");
+    coordinates_change(f, &t, &coordinates,
+                       "1", "1", "1", "1");
     Coordinates tmp_coordinates;
-    coordinates_change(f, &t, &tmp_coordinates, "1", "1", "1", "1");
+    coordinates_change(f, &t, &tmp_coordinates,
+                      "1", "1", "1", "1");
 
 
     //using all commands
-    commands_use(f, &commands, &t, &coordinates, &tmp_coordinates, &temporary_variables);
+    commands_use(f, &commands, &t, &coordinates,
+                 &tmp_coordinates, &temporary_variables);
 
 
     table_print(f, &t, delim[0]);
@@ -298,7 +317,8 @@ void table_set_slash(FILE *f, Table *t, char *delim)
             if  (size != 0)
             {
 
-                if  (t->rows[i].cells[j].word[0] == '\"' && t->rows[i].cells[j].word[size - 1] == '\"')
+                if  (t->rows[i].cells[j].word[0] == '\"' &&
+                t->rows[i].cells[j].word[size - 1] == '\"')
                 {
 
                     if (check_delim(&t->rows[i].cells[j],delim))
@@ -631,7 +651,8 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows)
 }
 
 //The function uses commands
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars)
+void commands_use(FILE *f, Commands *commds, Table *t,
+                  Coordinates *coords, Coordinates *tmp, Variables *tmp_vars)
 {
 
     char command1[1000];
@@ -696,42 +717,52 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
             clear(t, coords);
             continue;
         }
-        else if (sscanf(commds->item[i], "[%[^,],%[^,],%[^,],%[^]]]", command1, command2, command3, command4) == 4)
+        else if (sscanf(commds->item[i], "[%[^,],%[^,],%[^,],%[^]]]",
+                        command1, command2, command3, command4) == 4)
         {
-            coordinates_change(f, t, coords, command1, command2, command3, command4);
+            coordinates_change(f, t, coords, command1, command2,
+                               command3, command4);
             continue;
         }
-        else if (sscanf(commds->item[i], "[%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "[%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
-            coordinates_change(f, t, coords, command1, command2, NULL, NULL);
+            coordinates_change(f, t, coords, command1, command2,
+                               NULL, NULL);
             continue;
         }
-        else if (sscanf(commds->item[i], "[find %[^]]]", command1) == 1)
+        else if (sscanf(commds->item[i], "[find %[^]]]",
+                        command1) == 1)
         {
             find_STR(f, t, coords, command1);
             continue;
         }
-        else if (sscanf(commds->item[i], "swap [%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "swap [%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
             swap(f,t,coords,command1,command2);
             continue;
         }
-        else if (sscanf(commds->item[i], "sum [%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "sum [%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
             sum(f, t, coords, command1, command2);
             continue;
         }
-        else if (sscanf(commds->item[i], "avg [%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "avg [%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
             avg(f,t,coords,command1,command2);
             continue;
         }
-        else if (sscanf(commds->item[i], "count [%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "count [%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
             count(f,t,coords,command1,command2);
             continue;
         }
-        else if (sscanf(commds->item[i], "len [%[^,],%[^]]]", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "len [%[^,],%[^]]]",
+                        command1, command2) == 2)
         {
             len(f,t,coords,command1,command2);
             continue;
@@ -764,11 +795,13 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         {
             continue;
         }
-        else if (sscanf(commds->item[i], "iszero _%[^ ]%s", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "iszero _%[^ ]%s",
+                        command1, command2) == 2)
         {
             continue;
         }
-        else if (sscanf(commds->item[i], "sub _%[^ ] _%s", command1, command2) == 2)
+        else if (sscanf(commds->item[i], "sub _%[^ ] _%s",
+                        command1, command2) == 2)
         {
             continue;
         }
@@ -879,6 +912,7 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
 }
 
+//The function copies cell
 void cell_copy(FILE *f, Table *t, Cell *a, Cell b)
 {
 
