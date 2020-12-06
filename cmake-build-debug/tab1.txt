@@ -1,3 +1,4 @@
-a1 a2 3
-b1 b2 3
-c1 c2 3
+Jmeno Prijmeni Plat
+Bill Gates 15000000
+Franta Odvedle 15
+Pepik Ajtak 42
