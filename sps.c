@@ -168,6 +168,8 @@ void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
 
 void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
 
+void table_trim(FILE *f, Table *t, Coordinates *coords);
+
 int main(int argc, char **argv)
 {
 
@@ -216,6 +218,7 @@ int main(int argc, char **argv)
 
     table_ctor(&t);
     table_fill(f, &t, delim);       //      filling table with words
+
     table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
 
     Variables temporary_variables;
@@ -229,6 +232,7 @@ int main(int argc, char **argv)
 
     commands_use(f, &commands, &t, &c, &tmp, &temporary_variables);     //using all commands
 
+    table_trim(f, &t, &c);
     table_print(&t, delim[0]);
 
     tmp_vars_dtor(&temporary_variables);
@@ -236,6 +240,12 @@ int main(int argc, char **argv)
     fclose(f);
 
     return 0;
+}
+
+void table_trim(FILE *f, Table *t, Coordinates *coords) {
+
+
+
 }
 
 void tmp_vars_dtor(Variables *vars) {
@@ -1370,13 +1380,31 @@ void table_dtor(Table *t) {
 
 void table_print(Table *t, char delim) {
 
+    int d;
+
+    printf("Max cells: %i\n",t->max_cells);
+
+    for (int i = 0; i < t->max_cells; ++i) {
+
+        for (int j = 0; j < t->size; ++j) {
+
+            if  (t->rows[j].cells[i].size != 0)
+                d = i+1;
+
+        }
+
+    }
+
+    printf("Last not null col is %i\n",d);
+
+
 //    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
     for (int i = 0; i < t->size; i++) {
 
 //        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
 
 
-        for (int j = 0; j < t->rows[i].size; j++) {
+        for (int j = 0; j < d; j++) {
 
             for (int k = 0; k < t->rows[i].cells[j].size; ++k) {
 
@@ -1384,7 +1412,7 @@ void table_print(Table *t, char delim) {
 
             }
 
-            if (t->rows[i].size - 1 != j)
+            if (d - 1 != j)
                 printf("%c", delim);
 
         }
