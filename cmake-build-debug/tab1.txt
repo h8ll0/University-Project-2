@@ -1,4 +1,4 @@
 Jmeno Prijmeni Plat
 Bill Gates 15000000
-Franta Odvedle 15000000
-Pepik Ajtak 15000000
+Franta Odvedle "15000000"
+Pepik "He said: "Wow!"" "15000000"

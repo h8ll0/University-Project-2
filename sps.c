@@ -168,7 +168,15 @@ void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
 
 void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
 
-void table_trim(FILE *f, Table *t, Coordinates *coords);
+void table_set_slash(FILE *f, Table *t, char *delim);
+
+int check_delim(Cell *c, char *delim);
+
+void set_slash(FILE *f, Table *t, Cell *c);
+
+void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t);
+
+void delete_quots(FILE *f, Table *t, Cell *c);
 
 int main(int argc, char **argv)
 {
@@ -218,6 +226,7 @@ int main(int argc, char **argv)
 
     table_ctor(&t);
     table_fill(f, &t, delim);       //      filling table with words
+    table_set_slash(f,&t,delim);
 
     table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
 
@@ -232,7 +241,6 @@ int main(int argc, char **argv)
 
     commands_use(f, &commands, &t, &c, &tmp, &temporary_variables);     //using all commands
 
-    table_trim(f, &t, &c);
     table_print(&t, delim[0]);
 
     tmp_vars_dtor(&temporary_variables);
@@ -242,11 +250,117 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void table_trim(FILE *f, Table *t, Coordinates *coords) {
+void table_set_slash(FILE *f, Table *t, char *delim) {
+
+    int size;
+
+    for (int i = 0; i < t->size; ++i) {
+
+        for (int j = 0; j < t->rows[i].size; ++j) {
+
+            size = t->rows[i].cells[j].size;
+
+            if  (size != 0)
+            {
+
+                if  (t->rows[i].cells[j].word[0] == '\"' && t->rows[i].cells[j].word[size - 1] == '\"')
+                {
+
+                    if (check_delim(&t->rows[i].cells[j],delim))
+                    {
+
+                        set_slash(f, t, &t->rows[i].cells[j]);
 
 
+                    }else
+                    {
+
+                        delete_quots(f,t,&t->rows[i].cells[j]);
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
 
 }
+
+void delete_quots(FILE *f, Table *t, Cell *c) {
+
+    for (int i = 0; i < c->size; ++i) {
+
+        c->word[i] = c->word[i+1];
+
+    }
+
+    char *tmp = realloc(c->word, (c->size - 2) * sizeof(char));
+    c->word = tmp;
+    c->capacity = c->size - 2;
+    c->size -= 2;
+
+}
+
+void set_slash(FILE *f, Table *t, Cell *c) {
+
+    for (int i = 1; i < c->size-1; ++i) {
+
+        if (c->word[i] == '\\' || c->word[i] == '\"')
+        {
+
+            word_insert(f, c, i, '\\', t);
+            i++;
+            continue;
+
+        }
+
+    }
+
+}
+
+void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t) {
+
+    if (c->size == c->capacity)
+    {
+        array_resize(f,t,c,1);
+    }
+
+    if (c->size < c->capacity)
+    {
+
+        for (int i = c->size - 1; i >= idx ; i--) {
+
+            c->word[i+1] = c->word[i];
+
+        }
+
+        c->word[idx] = '\\';
+        c->size++;
+
+    }
+
+}
+
+int check_delim(Cell *c, char *delim) {
+
+    for (int i = 0; i < c->size; ++i) {
+
+        for (int j = 0; j < (int) strlen(delim); ++j) {
+
+            if  (c->word[i] == delim[j])
+                return 1;
+
+        }
+
+    }
+
+    return 0;
+
+}
+
 
 void tmp_vars_dtor(Variables *vars) {
 
@@ -1004,14 +1118,8 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
             memcpy(tmp_array,STR,size);
 
             t->rows[i].cells[j].word = tmp_array;
-
             t->rows[i].cells[j].size = size;
             t->rows[i].cells[j].capacity = size;
-
-//            for (int k = 0; k < size; ++k)
-//            {
-//                t->rows[i].cells[j].word[k] = STR[k];
-//            }
 
         }
 
@@ -1603,6 +1711,8 @@ void array_append(FILE *f, Table *t, Cell *a, int c)
 int array_fill(FILE *f, Table *t, Cell *a, char *delim) {
 
     int c = getc(f);
+    int counter = 0;
+    bool quotation_marks = false;
 
     while (1)
     {
@@ -1611,28 +1721,85 @@ int array_fill(FILE *f, Table *t, Cell *a, char *delim) {
         if (c == '\n')
             return 2;
 
-        if (c == '\\')
+        if  (counter == 0 && c == '\"')
         {
-
+            quotation_marks = true;
             array_append(f, t, a, c);
+            counter++;
             c = getc(f);
-            array_append(f, t, a, c);
-            c = getc(f);
-
         }
-        for (int i = 0; delim[i] ; i++)
+
+        if  (c == '\"' && quotation_marks)
+        {
+            quotation_marks = false;
+            array_append(f, t, a, c);
+            counter++;
+            c = getc(f);
+        }
+
+        if (c == EOF)
+            return 1;
+        if (c == '\n')
+            return 2;
+
+        if  (!quotation_marks)
         {
 
-            if (c == delim[i])
-                return 0;
+            for (int i = 0; delim[i] ; i++)
+            {
+
+                if (c == delim[i])
+                    return 0;
+
+            }
 
         }
 
 
         array_append(f, t, a, c);
+        counter++;
         c = getc(f);
 
     }
+
+//    int c = getc(f);
+//
+//    while (1)
+//    {
+//        if (c == EOF)
+//            return 1;
+//        if (c == '\n')
+//            return 2;
+//
+//        if (c == '\\')
+//        {
+//
+//            array_append(f, t, a, c);
+//            c = getc(f);
+//            array_append(f, t, a, c);
+//            c = getc(f);
+//
+//        }
+//        if  (c == '\"')
+//        {
+//            array_append(f, t, a, '\\');
+//            array_append(f, t, a, c);
+//            c = getc(f);
+//        }
+//
+//        for (int i = 0; delim[i] ; i++)
+//        {
+//
+//            if (c == delim[i])
+//                return 0;
+//
+//        }
+//
+//
+//        array_append(f, t, a, c);
+//        c = getc(f);
+//
+//    }
 
 }
 
