@@ -944,9 +944,7 @@ void find_min(FILE *f, Table *t, Coordinates *coords) {
 
         for (int j = col_start_int; j <= col_finish_int; ++j) {
 
-            t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
-
-            tmp = t->rows[i].cells[j].word;
+            tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
             if  (is_digit(tmp))
             {
@@ -986,11 +984,9 @@ void find_max(FILE *f, Table *t, Coordinates *coords) {
 
         for (int j = col_start_int; j <= col_finish_int; ++j) {
 
-                t->rows[i].cells[j].word[t->rows[i].cells[j].size] = '\0';
+            tmp = cell_to_string(f,t,&t->rows[i].cells[j]);
 
-                tmp = t->rows[i].cells[j].word;
-
-                if  (is_digit(tmp))
+            if  (is_digit(tmp))
                 {
                     printf("%s\n",tmp);
                     if  ((float) atof(tmp) > max || !set)
