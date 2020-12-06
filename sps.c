@@ -276,7 +276,7 @@ int main(int argc, char **argv)
     table_print(f, &t, delim[0]);
 
     tmp_vars_dtor(&temporary_variables);        //      end of work
-    fclose(w);
+    fclose(f);
     table_dtor(&t);
 
     return 0;
