@@ -132,7 +132,7 @@ void arow(FILE *f, Table *t, Coordinates *coords);
 //Function inserts a cell into a row
 void row_insert(FILE *f, Table *t, int idx);
 
-void drow(FILE *f, Table *t, Coordinates *coords);
+void drow(Table *t, Coordinates *coords);
 
 //Function sorts table
 void table_sort(Table *t);
@@ -147,7 +147,7 @@ Cell array_create();
 
 void acol(FILE *f, Table *t, Coordinates *coords);
 
-void dcol(FILE *f, Table *t, Coordinates *coords);
+void dcol(Table *t, Coordinates *coords);
 
 //Function sorts row
 void row_sort(Row *r, int i);
@@ -185,7 +185,8 @@ void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2)
 
 void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *command1);
 
-void tmp_vars_init(FILE *f, Table *t, Variables *vars);
+
+void tmp_vars_init(Variables *vars);
 
 void tmp_vars_dtor(Variables *vars);
 
@@ -257,7 +258,7 @@ int main(int argc, char **argv)
     table_normalize(f, &t, t.max_cells-1, t.size-1);
 
     Variables temporary_variables;
-    tmp_vars_init(f, &t, &temporary_variables);
+    tmp_vars_init(&temporary_variables);
 
     Coordinates coordinates;
     //      creating first coordinates waypoint [1,1]
@@ -421,7 +422,7 @@ void tmp_vars_dtor(Variables *vars)
 
 }
 
-void tmp_vars_init(FILE *f, Table *t, Variables *vars)
+void tmp_vars_init(Variables *vars)
 {
 
     vars->size = 0;
@@ -669,7 +670,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (strcmp(commds->item[i], "drow") == 0)
         {
-            drow(f,t,coords);
+            drow(t, coords);
             continue;
         }
         else if (strcmp(commds->item[i], "icol") == 0)
@@ -684,7 +685,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         }
         else if (strcmp(commds->item[i], "dcol") == 0)
         {
-            dcol(f,t,coords);
+            dcol(t, coords);
             continue;
         }
         else if (strcmp(commds->item[i], "clear") == 0)
@@ -1298,7 +1299,7 @@ void find_max(FILE *f, Table *t, Coordinates *coords)
 
 }
 
-void dcol(FILE *f, Table *t, Coordinates *coords)
+void dcol(Table *t, Coordinates *coords)
 {
 
     if (coords->col_start == 0 && coords->col_finish == t->max_cells-1)
@@ -1388,7 +1389,7 @@ Cell array_create()
     return result;
 }
 
-void drow(FILE *f, Table *t, Coordinates *coords)
+void drow(Table *t, Coordinates *coords)
 {
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i)
