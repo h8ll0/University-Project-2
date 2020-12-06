@@ -720,21 +720,13 @@ char *cell_to_string(FILE *f, Table *t, Cell *cell) {
 
     (void) f;
     (void) t;
-    char result[cell->size];
 
-    int i = 0;
-    while (i < cell->size) {
+    char *tmp = realloc(cell->word,(cell->size+1) * sizeof(char));
+    tmp[cell->size] = '\0';
+    cell->capacity = cell->size+1;
+    cell->word = tmp;
 
-        result[i] = cell->word[i];
-        i++;
-
-    }
-
-    result[i] = '\0';
-
-    char *p = result;
-
-    return p;
+    return cell->word;
 }
 
 void swap(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2) {
