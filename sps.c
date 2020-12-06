@@ -673,18 +673,10 @@ void define(FILE *f, Table *t, Coordinates *coords, Variables *tmp_vars, char *c
     Cell a = array_create(f,t);
     cell_copy(f,t,&a,(*t).rows[coords->row_start].cells[coords->col_start]);
 
-    if  (!tmp_vars->cell[number].size) {
+    tmp_vars->cell[number] = a;
 
-        tmp_vars->cell[number] = a;
+    if (tmp_vars->size == number)
         tmp_vars->size++;
-
-    }else
-    {
-
-        tmp_vars->cell[number] = a;
-
-
-    }
 
 }
 
