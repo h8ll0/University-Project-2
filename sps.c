@@ -994,7 +994,8 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
-            t->rows[i].cells[j].size = size;
+            int size = (int) strlen(STR);
+
             tmp_array = realloc(t->rows[i].cells[j].word, sizeof(char) * size);
 
             if  (NULL == tmp_array)
