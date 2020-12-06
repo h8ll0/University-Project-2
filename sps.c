@@ -164,9 +164,9 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1);
 
 void cell_copy(FILE *f, Table *t, Cell *a, Cell b);
 
-void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
+void set_coords(Coordinates *coords, Coordinates *tmp);
 
-void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
+void use_coords(Coordinates *coords, Coordinates *tmp);
 
 void table_set_slash(FILE *f, Table *t, char *delim);
 
@@ -298,6 +298,10 @@ void delete_quots(FILE *f, Table *t, Cell *c) {
     }
 
     char *tmp = realloc(c->word, (c->size - 2) * sizeof(char));
+
+    if  (NULL == tmp)
+        problem(f,t,1);
+
     c->word = tmp;
     c->capacity = c->size - 2;
     c->size -= 2;
@@ -337,7 +341,7 @@ void word_insert(FILE *f, Cell *c, int idx, char ch, Table *t) {
 
         }
 
-        c->word[idx] = '\\';
+        c->word[idx] = ch;
         c->size++;
 
     }
@@ -585,7 +589,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         if (strcmp(commds->item[i], "[set]") == 0)
         {
             printf("cmnd: set ""\n");
-            set_coords(f,t,coords,tmp);
+            set_coords(coords, tmp);
             continue;
         }
         else if (strcmp(commds->item[i], "[max]") == 0)
@@ -601,7 +605,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
         else if (strcmp(commds->item[i], "[_]") == 0)
         {
             printf("cmnd: \'_\'\n");
-            use_coords(f,t,coords,tmp);
+            use_coords(coords, tmp);
             continue;
         }
         else if (strcmp(commds->item[i], "irow") == 0)
@@ -733,7 +737,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coor
 
 }
 
-void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp) {
+void use_coords(Coordinates *coords, Coordinates *tmp) {
 
     coords->row_start = (*tmp).row_start;
     coords->row_finish = (*tmp).row_finish;
@@ -742,7 +746,7 @@ void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp) {
 
 }
 
-void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp) {
+void set_coords(Coordinates *coords, Coordinates *tmp) {
 
     tmp->row_start = (*coords).row_start;
     tmp->row_finish = (*coords).row_finish;
@@ -787,6 +791,9 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1) {
     vars->cell[number].capacity = size;
 
     tmp = realloc(vars->cell->word, size * sizeof(char));
+
+    if  (NULL == tmp)
+        problem(f,t,1);
 
     memcpy(tmp,tmp_number,size);
 
@@ -1023,6 +1030,9 @@ void cell_set_word(FILE *f, Table *t, Cell *a, char *word) {
     int size = (int) strlen(word);
     char *tmp = realloc(a->word,size * sizeof(char));
 
+    if  (NULL == tmp)
+        problem(f,t,1);
+
     for (int i = 0; i < size; ++i) {
 
         tmp[i] = word[i];
@@ -1041,6 +1051,10 @@ char *cell_to_string(FILE *f, Table *t, Cell *cell) {
     (void) t;
 
     char *tmp = realloc(cell->word,(cell->size+1) * sizeof(char));
+
+    if  (NULL == tmp)
+        problem(f,t,1);
+
     tmp[cell->size] = '\0';
     cell->capacity++;
     cell->word = tmp;
@@ -1100,7 +1114,7 @@ void clear(FILE *f, Table *t, Coordinates *coords) {
 
 void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
-    int size = (int) strlen(STR);
+    int size;
 
     char *tmp_array;
 
@@ -1108,7 +1122,7 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
-            int size = (int) strlen(STR);
+            size = (int) strlen(STR);
 
             tmp_array = realloc(t->rows[i].cells[j].word, sizeof(char) * size);
 
