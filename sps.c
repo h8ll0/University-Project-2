@@ -52,7 +52,7 @@ typedef struct coords {
 typedef struct variable {
 
     int size;
-    Cell *cell;
+    Cell cell[MAX_TMP_VARS];
 
 } Variables;
 
@@ -239,7 +239,7 @@ void tmp_vars_dtor(Variables *vars) {
 
     }
 
-    free(vars->cell);
+//    free(vars->cell);
 
 }
 
@@ -248,7 +248,7 @@ void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
     (void) f;
     (void) t;
 
-    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
+//    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
     vars->size = 0;
 
     printf("Tmp vars initialized!\n");
