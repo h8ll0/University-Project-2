@@ -598,6 +598,7 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1) {
 
     (void) vars;
     int number = 0;
+    char tmp_number[1000];
 
     if (is_digit(command1)){
 
@@ -607,6 +608,32 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1) {
     if  (number < 0 || number > 9)
         problem(f,t,7);
 
+    if  (number > vars->size)
+        problem(f,t,8);
+
+    char *tmp = cell_to_string(f,t,&vars->cell[number]);
+
+    if (is_digit(tmp)){
+
+        sprintf(tmp_number,"%i",(int) atoi(tmp) + 1);
+
+    }else
+    {
+
+        sprintf(tmp_number,"%i", 1);
+
+    }
+
+    int size = (int) strlen(tmp_number);
+
+    vars->cell[number].size = size;
+    vars->cell[number].capacity = size;
+
+    tmp = realloc(vars->cell->word, size * sizeof(char));
+
+    memcpy(tmp,tmp_number,size);
+
+    vars->cell[number].word = tmp;
 
 
 }
@@ -622,6 +649,9 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
     if  (number < 0 || number > 9)
         problem(f,t,7);
+
+    if  (number > vars->size)
+        problem(f,t,8);
 
     for (int i = coords->row_start; i <= coords->row_finish; ++i) {
 
@@ -1240,7 +1270,9 @@ void problem(FILE *f, Table *t, int i) {
             break;
         case 7:
             fprintf(stderr,"bad var choise\n");
-
+            break;
+        case 8:
+            fprintf(stderr,"undefined variable\n");
             break;
         default:
             fprintf(stderr,"some problems\n");
