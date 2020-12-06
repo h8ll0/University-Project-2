@@ -254,6 +254,8 @@ int main(int argc, char **argv)
     table_set_slash(f,&t,delim);
     fclose(f);
 
+    f = fopen(filename,"w");
+
     //      normalizing table (all rows has one column number)
     table_normalize(f, &t, t.max_cells-1, t.size-1);
 
@@ -270,7 +272,7 @@ int main(int argc, char **argv)
     //using all commands
     commands_use(f, &commands, &t, &coordinates, &tmp_coordinates, &temporary_variables);
 
-    FILE *w = fopen(filename,"w");
+
     table_print(f, &t, delim[0]);
 
     tmp_vars_dtor(&temporary_variables);        //      end of work
