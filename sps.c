@@ -1000,12 +1000,14 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
             if  (NULL == tmp_array)
                 problem(f,t,1);
 
+            memcpy(tmp_array,STR,size);
+
             t->rows[i].cells[j].word = tmp_array;
 
-            for (int k = 0; k < size; ++k)
-            {
-                t->rows[i].cells[j].word[k] = STR[k];
-            }
+//            for (int k = 0; k < size; ++k)
+//            {
+//                t->rows[i].cells[j].word[k] = STR[k];
+//            }
 
         }
 
