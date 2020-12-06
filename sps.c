@@ -161,6 +161,8 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
 void inc(FILE *f, Table *t, Variables *vars, char *command1);
 
+void cell_copy(FILE *f, Table *t, Cell *a, Cell b);
+
 int main(int argc, char **argv)
 {
 
@@ -617,12 +619,29 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
-            array_dtor(&t->rows[i].cells[j]);
-            t->rows[i].cells[j] = vars->cell[number];
+            cell_copy(f,t,&t->rows[i].cells[j],vars->cell[number]);
 
         }
 
     }
+
+}
+
+void cell_copy(FILE *f, Table *t, Cell *a, Cell b) {
+
+    char *tmp = realloc(a->word,b.size * sizeof(char));
+
+    if (tmp == NULL)
+        problem(f,t,1);
+
+    for (int i = 0; i < b.size; ++i) {
+
+        a->word[i] = b.word[i];
+
+    }
+    a->size = b.size;
+    a->capacity = b.capacity;
+
 
 }
 
@@ -817,7 +836,7 @@ char *cell_to_string(FILE *f, Table *t, Cell *cell) {
 
     char *tmp = realloc(cell->word,(cell->size+1) * sizeof(char));
     tmp[cell->size] = '\0';
-    cell->capacity = cell->size+1;
+    cell->capacity++;
     cell->word = tmp;
 
     return cell->word;
