@@ -90,7 +90,7 @@ void table_dtor(Table *t);
 
 void parse_commands(char *argv, Commands *commands);
 
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Variables *tmp_vars);
+void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars);
 
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
@@ -164,6 +164,10 @@ void inc(FILE *f, Table *t, Variables *vars, char *command1);
 
 void cell_copy(FILE *f, Table *t, Cell *a, Cell b);
 
+void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
+
+void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp);
+
 int main(int argc, char **argv)
 {
 
@@ -219,8 +223,11 @@ int main(int argc, char **argv)
 
     Coordinates c;
     coordinates_change(f, &t, &c, "1", "1", "1", "1");      //      creating first coordinates waypoint [1,1]
+    Coordinates tmp;
+    coordinates_change(f, &t, &tmp, "1", "1", "1", "1");
 
-    commands_use(f, &commands, &t, &c, &temporary_variables);     //using all commands
+
+    commands_use(f, &commands, &t, &c, &tmp, &temporary_variables);     //using all commands
 
     table_print(&t, delim[0]);
 
@@ -250,6 +257,12 @@ void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
 
 //    vars->cell = malloc(MAX_TMP_VARS * sizeof(Cell));
     vars->size = 0;
+
+//    for (int i = 0; i < MAX_TMP_VARS; ++i) {
+//
+//        vars->cell[i] = array_create(f,t);
+//
+//    }
 
     printf("Tmp vars initialized!\n");
 
@@ -313,7 +326,7 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 
     //row finish
-    if  ((r_finish) && (strcmp(r_finish,"_")) == 0)
+    if  ((r_finish) && (strcmp(r_finish,"-")) == 0)
     {
             coords->row_finish = t->size - 1;
 
@@ -340,7 +353,7 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 
     //col finish
-    if  ((c_finish) && (strcmp(c_finish,"_")) == 0)
+    if  ((c_finish) && (strcmp(c_finish,"-")) == 0)
     {
 
         coords->col_finish = t->max_cells - 1;
@@ -435,7 +448,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
 }
 
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Variables *tmp_vars) {
+void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Coordinates *tmp, Variables *tmp_vars) {
 
     char command1[50];
     char command2[50];
@@ -448,6 +461,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Vari
         if (strcmp(commds->item[i], "[set]") == 0)
         {
             printf("cmnd: set ""\n");
+            set_coords(f,t,coords,tmp);
             continue;
         }
         else if (strcmp(commds->item[i], "[max]") == 0)
@@ -463,6 +477,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Vari
         else if (strcmp(commds->item[i], "[_]") == 0)
         {
             printf("cmnd: \'_\'\n");
+            use_coords(f,t,coords,tmp);
             continue;
         }
         else if (strcmp(commds->item[i], "irow") == 0)
@@ -591,6 +606,24 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Vari
 
     }
 
+
+}
+
+void use_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp) {
+
+    coords->row_start = (*tmp).row_start;
+    coords->row_finish = (*tmp).row_finish;
+    coords->col_start = (*tmp).col_start;
+    coords->col_finish = (*tmp).col_finish;
+
+}
+
+void set_coords(FILE *f, Table *t, Coordinates *coords, Coordinates *tmp) {
+
+    tmp->row_start = (*coords).row_start;
+    tmp->row_finish = (*coords).row_finish;
+    tmp->col_start = (*coords).col_start;
+    tmp->col_finish = (*coords).col_finish;
 
 }
 
