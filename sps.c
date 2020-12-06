@@ -586,6 +586,7 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Vari
 
 void inc(FILE *f, Table *t, Variables *vars, char *command1) {
 
+    (void) vars;
     int number = 0;
 
     if (is_digit(command1)){
