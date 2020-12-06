@@ -1005,6 +1005,9 @@ void set_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
 
             t->rows[i].cells[j].word = tmp_array;
 
+            t->rows[i].cells[j].size = size;
+            t->rows[i].cells[j].capacity = size;
+
 //            for (int k = 0; k < size; ++k)
 //            {
 //                t->rows[i].cells[j].word[k] = STR[k];
