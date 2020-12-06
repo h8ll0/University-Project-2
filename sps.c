@@ -239,6 +239,8 @@ void tmp_vars_dtor(Variables *vars) {
 
     }
 
+    free(vars->cell);
+
 }
 
 void tmp_vars_init(FILE *f, Table *t, Variables *vars) {
