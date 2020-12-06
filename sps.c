@@ -5,6 +5,8 @@
 
 #define MAX_COMMANDS 1000
 #define MAX_IN_COMMAND 1000
+#define MAX_TMP_VARS 10
+
 
 typedef struct commands {
 
@@ -47,6 +49,12 @@ typedef struct coords {
 
 } Coordinates;
 
+typedef struct variable {
+
+    Cell var;
+
+} Variable;
+
 void array_ctor(Cell *a);
 
 int array_fill(FILE *f, Table *t, Cell *a, char *delim);
@@ -81,7 +89,7 @@ void table_dtor(Table *t);
 
 void parse_commands(char *argv, Commands *commands);
 
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords);
+void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Variable *tmp_vars);
 
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows);
 
@@ -143,6 +151,18 @@ void count(FILE *f, Table *t, Coordinates *coords, char *command1, char *command
 
 void len(FILE *f, Table *t, Coordinates *coords, char *command1, char *command2);
 
+void define(FILE *f, Table *t, Coordinates *coords, Variable *tmp_vars, char *command1);
+
+void tmp_vars_init(FILE *f, Table *t, Variable *vars);
+
+void tmp_vars_dtor(Variable *vars);
+
+void use(FILE *f, Table *t, Coordinates *coords, Variable *vars, char *command1);
+
+void inc(FILE *f, Table *t, Variable *vars, char *command1);
+
+Cell cell_copy(FILE *f, Table *t, Cell *c);
+
 int main(int argc, char **argv)
 {
 
@@ -187,26 +207,41 @@ int main(int argc, char **argv)
     }
 
     Table t;
+
+
     table_ctor(&t);
     table_fill(f, &t, delim);       //      filling table with words
     table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
-    table_print(&t, delim[0]);
-    printf("\n\n");
 
+    Variable *temporary_variables;
+    tmp_vars_init(f, &t, temporary_variables);
 
     Coordinates c;
     coordinates_change(f, &t, &c, "1", "1", "1", "1");      //      creating first coordinates waypoint [1,1]
 
-    commands_use(f, &commands, &t, &c);     //using all commands
+    commands_use(f, &commands, &t, &c, temporary_variables);     //using all commands
 
-    printf("\n");
     table_print(&t, delim[0]);
 
-
+    tmp_vars_dtor(temporary_variables);
     table_dtor(&t);         //      end of work
     fclose(f);
 
     return 0;
+}
+
+void tmp_vars_dtor(Variable *vars) {
+
+    free(vars);
+
+}
+
+void tmp_vars_init(FILE *f, Table *t, Variable *vars) {
+
+    vars = malloc(MAX_TMP_VARS * sizeof(Cell));
+
+    printf("Tmp vars initialized!\n");
+
 }
 
 void
@@ -336,8 +371,8 @@ coordinates_change(FILE *f, Table *t, Coordinates *coords, char *r_start, char *
 
 
 
-    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 
 }
@@ -358,8 +393,8 @@ bool is_digit(char *string) {
 
 void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
-    printf("Max cells: %i\n",max_cells);
-    printf("Max rows: %i\n",max_rows);
+//    printf("Max cells: %i\n",max_cells);
+//    printf("Max rows: %i\n",max_rows);
 
     for (int i = 0; i < t->size; i++) {
 
@@ -389,7 +424,7 @@ void table_normalize(FILE *f, Table *t, int max_cells, int max_rows) {
 
 }
 
-void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
+void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords, Variable *tmp_vars) {
 
     char command1[50];
     char command2[50];
@@ -496,7 +531,6 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         }
         else if (sscanf(commds->item[i], "len [%[^,],%[^]]]", command1, command2) == 2)
         {
-            printf("cmnd len: \'%s\' \'%s\'\n",command1,command2);
             len(f,t,coords,command1,command2);
             continue;
         }
@@ -508,16 +542,19 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
         else if (sscanf(commds->item[i], "def _%s", command1) == 1)
         {
             printf("cmnd def: \'%s\'\n",command1);
+            define(f, t, coords, tmp_vars, command1);
             continue;
         }
         else if (sscanf(commds->item[i], "use _%s", command1) == 1)
         {
             printf("cmnd use: \'%s\'\n",command1);
+            use(f,t,coords,tmp_vars,command1);
             continue;
         }
         else if (sscanf(commds->item[i], "inc _%s", command1) == 1)
         {
             printf("cmnd inc: \'%s\'\n",command1);
+            inc(f,t,tmp_vars,command1);
             continue;
         }
         else if (sscanf(commds->item[i], "goto +%s", command1) == 1)
@@ -543,6 +580,92 @@ void commands_use(FILE *f, Commands *commds, Table *t, Coordinates *coords) {
 
     }
 
+
+}
+
+void inc(FILE *f, Table *t, Variable *vars, char *command1) {
+
+    int number = 0;
+
+    if (is_digit(command1)){
+
+        number = (int) atoi(command1);
+    }
+
+    if  (number < 0 || number > 9)
+        problem(f,t,7);
+
+    char *tmp = cell_to_string(f,t,&vars[number].var);
+
+    if (is_digit(tmp)) {
+
+        sprintf(tmp,"%i",(int) atoi(tmp) + 1);
+
+    }
+    else
+    {
+        sprintf(tmp,"%i",1);
+
+    }
+
+    cell_set_word(f,t,&vars[number].var,tmp);
+
+}
+
+void use(FILE *f, Table *t, Coordinates *coords, Variable *vars, char *command1) {
+
+    int number = 0;
+
+    if (is_digit(command1)){
+
+        number = (int) atoi(command1);
+    }
+
+    if  (number < 0 || number > 9)
+        problem(f,t,7);
+
+    t->rows[coords->row_start].cells[coords->col_start] = vars[number].var;
+
+}
+
+void define(FILE *f, Table *t, Coordinates *coords, Variable *tmp_vars, char *command1) {
+
+    int number = 0;
+
+    if (is_digit(command1)){
+
+        number = (int) atoi(command1);
+    }
+
+    if  (number < 0 || number > 9)
+        problem(f,t,7);
+
+   Cell *a = get_cell(f,t,coords->row_start,coords->col_start);
+
+   printf("Var defined\n");
+
+   tmp_vars[number].var = cell_copy(f, t, a);
+
+}
+
+Cell cell_copy(FILE *f, Table *t, Cell *c) {
+
+    Cell a;
+    array_ctor(&a);
+
+    char *tmp = cell_to_string(f,t,c);
+
+    a.word = realloc(a.word, (int) strlen(tmp) * sizeof(char));
+    a.capacity = (int) strlen(tmp);
+    a.size = (int) strlen(tmp);
+
+    for (int i = 0; i < (int) strlen(tmp); ++i) {
+
+        a.word[i] = tmp[i];
+
+    }
+
+    return a;
 
 }
 
@@ -830,8 +953,8 @@ void find_STR(FILE *f, Table *t, Coordinates *coords, char *STR) {
         }
 
     }
-    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 }
 
@@ -871,9 +994,9 @@ void find_min(FILE *f, Table *t, Coordinates *coords) {
         }
 
     }
-    printf("Min: %f\n",min);
-    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+//    printf("Min: %f\n",min);
+//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 }
 
@@ -913,9 +1036,9 @@ void find_max(FILE *f, Table *t, Coordinates *coords) {
         }
 
     }
-    printf("Max: %.f\n",max);
-    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
-    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
+//    printf("Max: %.f\n",max);
+//    printf("Row start: %i, finish: %i\n", coords->row_start, coords->row_finish);
+//    printf("Col start: %i, finish: %i\n", coords->col_start, coords->col_finish);
 
 
 }
@@ -1107,6 +1230,8 @@ void problem(FILE *f, Table *t, int i) {
             fprintf(stderr,"bad args\n");
             break;
         case 7:
+            fprintf(stderr,"bad var choise\n");
+
             break;
         default:
             fprintf(stderr,"some problems\n");
@@ -1172,10 +1297,10 @@ void table_dtor(Table *t) {
 
 void table_print(Table *t, char delim) {
 
-    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
+//    printf("Table has size: %i, cap %i\n------------------------\n",t->size,t->capacity);
     for (int i = 0; i < t->size; i++) {
 
-        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
+//        printf("Row %i has size: %i, cap: %i\n",i,t->rows[i].size,t->rows[i].capacity);
 
 
         for (int j = 0; j < t->rows[i].size; j++) {
