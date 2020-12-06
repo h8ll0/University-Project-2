@@ -617,6 +617,7 @@ void use(FILE *f, Table *t, Coordinates *coords, Variables *vars, char *command1
 
         for (int j = coords->col_start; j <= coords->col_finish; ++j) {
 
+            array_dtor(&t->rows[i].cells[j]);
             t->rows[i].cells[j] = vars->cell[number];
 
         }
