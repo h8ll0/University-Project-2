@@ -213,7 +213,7 @@ int main(int argc, char **argv)
     table_fill(f, &t, delim);       //      filling table with words
     table_normalize(f, &t, t.max_cells-1, t.size-1);        //      normalizing table (all rows has one column number)
 
-    Variable *temporary_variables;
+    Variable *temporary_variables = NULL;
     tmp_vars_init(f, &t, temporary_variables);
 
     Coordinates c;
@@ -237,6 +237,9 @@ void tmp_vars_dtor(Variable *vars) {
 }
 
 void tmp_vars_init(FILE *f, Table *t, Variable *vars) {
+
+    (void) f;
+    (void) t;
 
     vars = malloc(MAX_TMP_VARS * sizeof(Cell));
 
